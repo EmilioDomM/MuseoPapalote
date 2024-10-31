@@ -1,5 +1,6 @@
 package com.example.museopapalote
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,7 +18,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.museopapalote.ui.theme.MuseoPapaloteTheme
+import com.example.landingpage.components.NavBar.BottomNavigationBar
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,18 +30,21 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MyApp() {
     MaterialTheme {
         Surface {
-            // Initialize NavController
             val navController = rememberNavController()
-
-            // Set up the MainNavigation composable with the NavController
-            MainNavigation(navController = navController)
+            Scaffold(
+                bottomBar = { BottomNavigationBar(navController) }
+            ) {
+                MainNavigation(navController = navController)
+            }
         }
     }
 }
+
 
 
 @Composable
