@@ -1,18 +1,15 @@
 package com.example.museopapalote
 
+import LoginScreen
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -45,11 +42,15 @@ fun MyApp() {
     }
 }
 
-
-
 @Composable
 fun MainNavigation(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "home") {
+    var isLoggedIn by remember { mutableStateOf(false) }
+
+    NavHost(
+        navController = navController,
+        startDestination = if (isLoggedIn) "home" else "login"
+    ) {
+        composable("login") { LoginScreen(navController) { isLoggedIn = true } }
         composable("home") { Home(navController) }
         composable("page1") { Page1(navController) }
         composable("page2") { Page2(navController) }
