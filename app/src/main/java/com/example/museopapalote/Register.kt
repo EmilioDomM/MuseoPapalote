@@ -1,4 +1,5 @@
-import android.util.Log
+import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavHostController
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,62 +20,71 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.example.museopapalote.R
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
-private fun createUser() {
-    val db = Firebase.firestore
+// Definición de la clase PasswordStrength
+data class PasswordStrength(
+    val label: String,
+    val color: Color
+)
 
-    val user = hashMapOf(
-        "userID" to "12345",
-        "email" to "example@example.com",
-        "phoneNumber" to "+123456789",
-        "password" to "password123",
-        "age" to 25
-    )
-    db.collection("Users").document("12345")
-        .set(user)
-        .addOnSuccessListener {
-            Log.d("Firestore", "User added successfully")
-        }
-        .addOnFailureListener { e ->
-            Log.w("Firestore", "Error adding user", e)
-        }
+// Función para verificar la fortaleza de la contraseña
+fun checkPasswordStrength(password: String): PasswordStrength {
+    var score = 0
+
+    // Longitud mínima
+    if (password.length >= 8) score += 1
+    if (password.length >= 12) score += 1
+
+    // Complejidad
+    if (password.contains(Regex("[a-z]"))) score += 1
+    if (password.contains(Regex("[A-Z]"))) score += 1
+    if (password.contains(Regex("[0-9]"))) score += 1
+    if (password.contains(Regex("[^A-Za-z0-9]"))) score += 1
+
+    // Patrones comunes
+    if (password.contains(Regex("(.)\\1{2,}"))) score -= 1
+    if (password.contains(Regex("password|123456|qwerty", RegexOption.IGNORE_CASE))) score -= 2
+
+    return when {
+        password.isEmpty() -> PasswordStrength("Vacío", Color.Gray) // Neutro
+        score <= 2 -> PasswordStrength("Muy débil", Color(0xFFFF6B6B))
+        score <= 3 -> PasswordStrength("Débil", Color(0xFFFFA75D))
+        score <= 4 -> PasswordStrength("Media", Color(0xFFFFD96A))
+        score <= 5 -> PasswordStrength("Fuerte", Color(0xFFA3CF3C))
+        else -> PasswordStrength("Muy fuerte", Color(0xFF697618))
+    }
 }
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
+fun RegisterScreen(navController: NavHostController) {
     val backgroundPainter = painterResource(id = R.drawable.fondologin)
     val logoPainter = painterResource(id = R.drawable.logo_papalote_verde)
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    val correctUsername = "usuarioEjemplo"
-    val correctPassword = "password123"
-
-    // Fuente Poppins
     val poppinsFontFamily = FontFamily(Font(R.font.poppins_regular))
+    var password by remember { mutableStateOf("") }
+    val passwordStrength = checkPasswordStrength(password)
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Fondo con imagen y overlay gradiente
         Image(
             painter = backgroundPainter,
             contentDescription = null,
             modifier = Modifier.fillMaxSize()
         )
 
-
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 48.dp)
-                .padding(top =48.dp)
+                .padding(top = 48.dp),
+
+
         ) {
             Image(
                 painter = logoPainter,
@@ -86,7 +96,7 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
             )
 
             Text(
-                text = "Inicio de sesión",
+                text = "Registrarse",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
@@ -97,22 +107,51 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
             )
 
             Text(
-                text = "¡Qué bueno verte de nuevo!",
+                text = "¿No tienes cuenta? Crea una",
                 fontSize = 14.sp,
                 color = Color.Gray,
                 fontFamily = poppinsFontFamily,
-                modifier = Modifier
-                    .padding(bottom = 16.dp)
-                    .align(Alignment.Start)
+                modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // Campo de usuario
+            Text(
+                text = "Correo Electrónico",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontFamily = poppinsFontFamily,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            var email by remember { mutableStateOf("") }
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                placeholder = { Text("tunombre@gmail.com", color = Color.Gray.copy(alpha = 0.7f)) },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_mail), // Necesitarás añadir este ícono
+                        contentDescription = "Email Icon",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    containerColor = Color(0x33000000),
+                    focusedBorderColor = Color.White.copy(alpha = 0.5f),
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(8.dp)
+            )
+
             Text(
                 text = "Nombre",
                 color = Color.White,
                 fontSize = 14.sp,
                 fontFamily = poppinsFontFamily,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
             )
 
             var username by remember { mutableStateOf("") }
@@ -132,7 +171,6 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                     containerColor = Color(0x33000000),
                     focusedBorderColor = Color.White.copy(alpha = 0.5f),
                     unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -140,16 +178,14 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                 shape = RoundedCornerShape(8.dp)
             )
 
-            // Campo de contraseña
             Text(
                 text = "Contraseña",
                 color = Color.White,
                 fontSize = 14.sp,
-                fontFamily = poppinsFontFamily,
+                fontFamily = FontFamily.Default,
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
             )
 
-            var password by remember { mutableStateOf("") }
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -162,12 +198,19 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                         modifier = Modifier.size(20.dp)
                     )
                 },
+                trailingIcon = {
+                    Text(
+                        text = passwordStrength.label,
+                        color = passwordStrength.color,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                },
                 visualTransformation = PasswordVisualTransformation(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     containerColor = Color(0x33000000),
                     focusedBorderColor = Color.White.copy(alpha = 0.5f),
                     unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -175,38 +218,13 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                 shape = RoundedCornerShape(8.dp)
             )
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(onClick = { /* TODO: Implementar recuperación de contraseña */ }) {
-                    Text(
-                        "¿Olvidaste tu contraseña?",
-                        color = Color.Gray,
-                        fontSize = 12.sp,
-                        fontFamily = poppinsFontFamily
-                    )
-                }
-            }
-
             Button(
-                onClick = {
-                    if (username == correctUsername && password == correctPassword) {
-                        onLoginSuccess()
-                        navController.navigate("home") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                    } else {
-                        errorMessage = "Usuario o contraseña incorrectos"
-                    }
-                },
+                onClick = { /* TODO: Implementar registro */ },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.dp)
-                    .padding(vertical = 2.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                shape = RoundedCornerShape(8.dp)
+                    .height(72.dp)
+                    .padding(top = 18.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
                 Box(
                     modifier = Modifier
@@ -220,7 +238,7 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "Inicia sesión",
+                        "Crear cuenta",
                         color = Color.White,
                         fontWeight = FontWeight.Medium,
                         fontFamily = poppinsFontFamily
@@ -235,16 +253,16 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "¿No tienes cuenta?",
+                    text = "¿Ya tienes cuenta?",
                     color = Color.Gray,
                     fontSize = 12.sp,
                     fontFamily = poppinsFontFamily
                 )
                 TextButton(
-                    onClick = { navController.navigate("register") }
+                    onClick = { navController.navigate("login") }
                 ) {
                     Text(
-                        text = "Regístrate",
+                        text = "Inica sesión",
                         color = Color(0xFFD2EC30),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -252,10 +270,6 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                     )
                 }
             }
-
-
-
-
 
 
         }
