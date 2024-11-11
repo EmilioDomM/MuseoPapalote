@@ -3,6 +3,7 @@ package com.example.museopapalote
 import LoginScreen
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,6 +17,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.landingpage.components.NavBar.BottomNavigationBar
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,6 +27,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApp()
         }
+        // Initialize Firestore
+        val db = Firebase.firestore
+        Log.d("Firestore", "Firestore instance initialized successfully")
     }
 }
 

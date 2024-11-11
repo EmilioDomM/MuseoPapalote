@@ -1,3 +1,4 @@
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.res.painterResource
@@ -12,6 +13,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.museopapalote.R
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+
+private fun createUser() {
+    val db = Firebase.firestore
+
+    val user = hashMapOf(
+        "userID" to "12345",
+        "email" to "example@example.com",
+        "phoneNumber" to "+123456789",
+        "password" to "password123",
+        "age" to 25
+    )
+    db.collection("Users").document("12345")
+        .set(user)
+        .addOnSuccessListener {
+            Log.d("Firestore", "User added successfully")
+        }
+        .addOnFailureListener { e ->
+            Log.w("Firestore", "Error adding user", e)
+        }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
