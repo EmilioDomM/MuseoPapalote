@@ -1,3 +1,4 @@
+import android.util.Log
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
 import androidx.compose.foundation.Image
@@ -23,6 +24,10 @@ import androidx.compose.ui.unit.sp
 import com.example.museopapalote.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 
 // Definición de la clase PasswordStrength
 data class PasswordStrength(
@@ -68,6 +73,12 @@ fun RegisterScreen(navController: NavHostController) {
     val poppinsFontFamily = FontFamily(Font(R.font.poppins_regular))
     var password by remember { mutableStateOf("") }
     val passwordStrength = checkPasswordStrength(password)
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    var email by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    val firestore = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -126,7 +137,7 @@ fun RegisterScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = { Text("tunombre@gmail.com", color = Color.Gray.copy(alpha = 0.7f)) },
+                placeholder = { Text("ejemplo@gmail.com", color = Color.Gray.copy(alpha = 0.7f)) },
                 leadingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_mail), // Necesitarás añadir este ícono
@@ -219,7 +230,10 @@ fun RegisterScreen(navController: NavHostController) {
             )
 
             Button(
-                onClick = { /* TODO: Implementar registro */ },
+                onClick = {
+                    // Call function to handle registration
+                    handleRegister(email, username, password, navController)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(72.dp)
@@ -244,6 +258,16 @@ fun RegisterScreen(navController: NavHostController) {
                         fontFamily = poppinsFontFamily
                     )
                 }
+            }
+
+            // Error message display
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
             }
 
             Row(
@@ -273,5 +297,49 @@ fun RegisterScreen(navController: NavHostController) {
 
 
         }
+    }
+}
+
+fun handleRegister(
+    email: String,
+    username: String,
+    password: String,
+    navController: NavHostController
+) {
+    val auth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance()
+
+    if (email.isNotBlank() && username.isNotBlank() && password.isNotBlank()) {
+        // Register user with Firebase Authentication
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val userId = auth.currentUser?.uid
+
+                    // Create a user map to save in Firestore
+                    val user = hashMapOf(
+                        "userID" to userId,
+                        "email" to email,
+                        "username" to username,
+                    )
+
+                    // Add user to Firestore under "Users" collection
+                    firestore.collection("Users").document(userId!!)
+                        .set(user)
+                        .addOnSuccessListener {
+                            Log.d("Firestore", "User added successfully")
+                            navController.navigate("login") {
+                                popUpTo("register") { inclusive = true }
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.w("Firestore", "Error adding user", e)
+                        }
+                } else {
+                    Log.w("FirebaseAuth", "User registration failed", task.exception)
+                }
+            }
+    } else {
+        Log.w("Validation", "Please fill in all fields")
     }
 }
