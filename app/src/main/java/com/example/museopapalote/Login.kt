@@ -1,18 +1,14 @@
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.fontResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -22,28 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.museopapalote.R
 import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
-
-private fun createUser() {
-    val db = Firebase.firestore
-
-    val user = hashMapOf(
-        "userID" to "12345",
-        "email" to "example@example.com",
-        "phoneNumber" to "+123456789",
-        "password" to "password123",
-        "age" to 25
-    )
-    db.collection("Users").document("12345")
-        .set(user)
-        .addOnSuccessListener {
-            Log.d("Firestore", "User added successfully")
-        }
-        .addOnFailureListener { e ->
-            Log.w("Firestore", "Error adding user", e)
-        }
-}
-
+import com.google.firebase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,154 +27,129 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
     val logoPainter = painterResource(id = R.drawable.logo_papalote_verde)
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    val correctUsername = "usuarioEjemplo"
-    val correctPassword = "password123"
-
-    // Fuente Poppins
+    val auth = Firebase.auth
     val poppinsFontFamily = FontFamily(Font(R.font.poppins_regular))
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
     ) {
-        // Fondo con imagen y overlay gradiente
         Image(
             painter = backgroundPainter,
             contentDescription = null,
             modifier = Modifier.fillMaxSize()
         )
-
-
-
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 48.dp)
-                .padding(top =48.dp)
+                .fillMaxWidth()
+                .padding(top = 0.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(4.dp))
             Image(
                 painter = logoPainter,
                 contentDescription = "Logo",
                 modifier = Modifier
                     .size(200.dp)
-                    .padding(bottom = 38.dp)
-                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 24.dp)
             )
-
+            Spacer(modifier = Modifier.height(30.dp))
             Text(
                 text = "Inicio de sesión",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
-                fontFamily = poppinsFontFamily,
-                modifier = Modifier
-                    .padding(top = 18.dp).align(Alignment.Start),
-
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
-
             Text(
                 text = "¡Qué bueno verte de nuevo!",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                fontFamily = poppinsFontFamily,
-                modifier = Modifier
-                    .padding(bottom = 16.dp)
-                    .align(Alignment.Start)
+                fontSize = 16.sp,
+                color = Color.White
             )
+            Spacer(modifier = Modifier.height(30.dp))
 
-            // Campo de usuario
-            Text(
-                text = "Nombre",
-                color = Color.White,
-                fontSize = 14.sp,
-                fontFamily = poppinsFontFamily,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            var username by remember { mutableStateOf("") }
+            // Campo de nombre de usuario
+            var email by remember { mutableStateOf("") }
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                placeholder = { Text("@tunombre", color = Color.Gray.copy(alpha = 0.7f)) },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
                 leadingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_person),
                         contentDescription = "User Icon",
-                        tint = Color.Gray,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                 },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = Color(0x33000000),
-                    focusedBorderColor = Color.White.copy(alpha = 0.5f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    unfocusedBorderColor = Color.White,
+                    focusedBorderColor = Color.Unspecified
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(8.dp)
+                    .height(56.dp)
             )
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Campo de contraseña
-            Text(
-                text = "Contraseña",
-                color = Color.White,
-                fontSize = 14.sp,
-                fontFamily = poppinsFontFamily,
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-            )
-
             var password by remember { mutableStateOf("") }
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = { Text("••••••••", color = Color.Gray.copy(alpha = 0.7f)) },
+                label = { Text("Contraseña") },
                 leadingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_lock),
                         contentDescription = "Password Icon",
-                        tint = Color.Gray,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                 },
                 visualTransformation = PasswordVisualTransformation(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = Color(0x33000000),
-                    focusedBorderColor = Color.White.copy(alpha = 0.5f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    unfocusedBorderColor = Color.White,
+                    focusedBorderColor = Color.Yellow
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(8.dp)
+                    .height(56.dp)
             )
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(onClick = { /* TODO: Implementar recuperación de contraseña */ }) {
-                    Text(
-                        "¿Olvidaste tu contraseña?",
-                        color = Color.Gray,
-                        fontSize = 12.sp,
-                        fontFamily = poppinsFontFamily
-                    )
-                }
+            // Mostrar el mensaje de error si existe
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
             }
 
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Botón de inicio de sesión
             Button(
                 onClick = {
-                    if (username == correctUsername && password == correctPassword) {
-                        onLoginSuccess()
-                        navController.navigate("home") {
-                            popUpTo("login") { inclusive = true }
+                    auth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                onLoginSuccess()
+                                navController.navigate("home") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                errorMessage = "Usuario o contraseña incorrectos"
+                            }
                         }
-                    } else {
-                        errorMessage = "Usuario o contraseña incorrectos"
-                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -252,12 +202,6 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                     )
                 }
             }
-
-
-
-
-
-
         }
     }
 }
