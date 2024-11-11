@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "614309434319",
+    "project_id": "museopapalote-2b346",
+    "storage_bucket": "museopapalote-2b346.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:614309434319:android:6683d175119e400d3b78ba",
+        "android_client_info": {
+          "package_name": "com.example.museopapalote"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlA1oV_1rIzSaPyS6KxbeOruQBEfA8ZuI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
