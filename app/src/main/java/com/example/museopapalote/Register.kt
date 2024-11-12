@@ -140,6 +140,7 @@ fun RegisterScreen(navController: NavHostController) {
                     focusedBorderColor = Color.White.copy(alpha = 0.5f),
                     unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
                 ),
+                textStyle = TextStyle(color = Color.White),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -172,6 +173,7 @@ fun RegisterScreen(navController: NavHostController) {
                     focusedBorderColor = Color.White.copy(alpha = 0.5f),
                     unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
                 ),
+                textStyle = TextStyle(color = Color.White),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -212,6 +214,7 @@ fun RegisterScreen(navController: NavHostController) {
                     focusedBorderColor = Color.White.copy(alpha = 0.5f),
                     unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
                 ),
+                textStyle = TextStyle(color = Color.White),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),

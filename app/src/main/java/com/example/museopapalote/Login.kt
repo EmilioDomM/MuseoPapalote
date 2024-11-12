@@ -134,6 +134,7 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                     unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
 
                 ),
+                textStyle = TextStyle(color = Color.White),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -169,6 +170,7 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                     unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
 
                 ),
+                textStyle = TextStyle(color = Color.White),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
