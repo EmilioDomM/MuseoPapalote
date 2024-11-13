@@ -2,6 +2,7 @@ package com.example.museopapalote
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
@@ -36,7 +37,7 @@ fun Home(navController: NavHostController) {
                 .padding(horizontal = 0.dp)
         ) {
             GreetingSection()
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             ObrasDeInteresSection()
             Spacer(modifier = Modifier.height(16.dp))
             MapaInteractivoSection()
@@ -107,16 +108,25 @@ fun ObrasDeInteresSection() {
         contentPadding = PaddingValues(horizontal = 8.dp)
     ) {
         items(imageList.size) { index ->
-            Image(
-                painter = painterResource(id = imageList[index]),
-                contentDescription = "Obra ${index + 1}",
+            Box(
                 modifier = Modifier
                     .size(120.dp)
                     .aspectRatio(1.5f)
-            )
+                    .clickable {
+                        // Acción cuando se hace clic en la imagen
+                        println("Imagen ${index + 1} clickeada")
+                    }
+            ) {
+                Image(
+                    painter = painterResource(id = imageList[index]),
+                    contentDescription = "Obra ${index + 1}",
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun MapaInteractivoSection() {
