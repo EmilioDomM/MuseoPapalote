@@ -1,6 +1,7 @@
 package com.example.museopapalote
 
 import LoginScreen
+import QR
 import RegisterScreen
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -68,9 +69,9 @@ fun MainNavigation(navController: NavHostController) {
         composable("login") { LoginScreen(navController) { isLoggedIn = true } }
         composable("register") { RegisterScreen(navController) }
         composable("home") { Home(navController) }
-        composable("page1") { Page1(navController) }
-        composable("page2") { Page2(navController) }
-        composable("page3") { Page3(navController) }
+        composable("map") { Map(navController) }
+        composable("qr") { QR(navController) }
+        composable("profile") { Profile(navController) }
     }
 }
 

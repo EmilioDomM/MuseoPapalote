@@ -5,9 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 
 @Composable
-fun Page2(navController: NavHostController) {
-    Button(onClick = { navController.navigate("page3") }) {
-        Text("Go to Page 3")
+fun Map(navController: NavHostController) {
+    Button(onClick = { navController.navigate("qr") }) {
+        Text("Go to QR")
     }
 }
 
