@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 
 @Composable
-fun Page1(navController: NavHostController) {
-    Button(onClick = { navController.navigate("page2") }) {
-        Text("Go to Page 2")
+fun Profile(navController: NavHostController) {
+    Button(onClick = { navController.navigate("Home") }) {
+        Text("Go to Home")
     }
 }
