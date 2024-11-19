@@ -1,3 +1,5 @@
+package com.example.museopapalote
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,16 +18,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.museopapalote.R
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
+fun LoginScreen(navController: NavHostController, dataStoreManager: DataStoreManager) {
     val backgroundPainter = painterResource(id = R.drawable.fondologin)
     val logoPainter = painterResource(id = R.drawable.logo_papalote_verde)
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     val auth = Firebase.auth
     val poppinsFontFamily = FontFamily(Font(R.font.poppins_regular))
@@ -142,7 +145,9 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit) {
                     auth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
-                                onLoginSuccess()
+                                coroutineScope.launch { // Use coroutineScope
+                                    dataStoreManager.setLoggedIn(true)
+                                }
                                 navController.navigate("home") {
                                     popUpTo("login") { inclusive = true }
                                 }

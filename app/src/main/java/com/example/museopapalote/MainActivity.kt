@@ -1,6 +1,6 @@
 package com.example.museopapalote
 
-import LoginScreen
+import QR
 import RegisterScreen
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -23,11 +23,13 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
 class MainActivity : ComponentActivity() {
+    private lateinit var dataStoreManager: DataStoreManager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        dataStoreManager = DataStoreManager(this)
         setContent {
-            MyApp()
+            MyApp(dataStoreManager)
         }
         // Initialize Firestore
         val db = Firebase.firestore
@@ -37,7 +39,9 @@ class MainActivity : ComponentActivity() {
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MyApp() {
+fun MyApp(dataStoreManager: DataStoreManager) {
+    val isLoggedIn = dataStoreManager.isLoggedIn.collectAsState(initial = false)
+
     MaterialTheme {
         Surface {
             val navController = rememberNavController()
@@ -45,32 +49,33 @@ fun MyApp() {
 
             Scaffold(
                 bottomBar = {
-                    // Solo mostrar la barra de navegación si NO estamos en la pantalla de login
                     if (currentRoute != "login" && currentRoute != "register") {
                         BottomNavigationBar(navController)
                     }
                 }
             ) {
-                MainNavigation(navController = navController)
+                MainNavigation(navController, dataStoreManager, isLoggedIn.value)
             }
         }
     }
 }
 
 @Composable
-fun MainNavigation(navController: NavHostController) {
-    var isLoggedIn by remember { mutableStateOf(false) }
-
+fun MainNavigation(
+    navController: NavHostController,
+    dataStoreManager: DataStoreManager,
+    isLoggedIn: Boolean
+) {
     NavHost(
         navController = navController,
         startDestination = if (isLoggedIn) "home" else "login"
     ) {
-        composable("login") { LoginScreen(navController) { isLoggedIn = true } }
+        composable("login") { LoginScreen(navController, dataStoreManager) }
         composable("register") { RegisterScreen(navController) }
         composable("home") { Home(navController) }
-        composable("page1") { Page1(navController) }
-        composable("page2") { Page2(navController) }
-        composable("page3") { Page3(navController) }
+        composable("map") { Map(navController) }
+        composable("qr") { QR(navController) }
+        composable("profile") { Profile(navController) }
     }
 }
 
@@ -78,5 +83,9 @@ fun MainNavigation(navController: NavHostController) {
 @Composable
 fun MainNavigationPreview() {
     val navController = rememberNavController()
-    MainNavigation(navController = navController)
+    MainNavigation(
+        navController = navController,
+        dataStoreManager = TODO(),
+        isLoggedIn = TODO()
+    )
 }

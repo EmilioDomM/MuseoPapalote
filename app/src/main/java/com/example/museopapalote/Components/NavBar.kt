@@ -23,37 +23,57 @@ fun BottomNavigationBar(navController: NavHostController) {
             icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
             label = { Text("Home") },
             selected = navController.currentDestination?.route == "home",
-            onClick = { navController.navigate("home") }
+            onClick = {
+                navController.navigate("home") {
+                    popUpTo("home") { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         )
         NavigationBarItem(
             icon = {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_wallet),
-                    contentDescription = "Page 1",
+                    contentDescription = "Map",
                     modifier = Modifier.size(24.dp)
                 )
             },
-            label = { Text("Page 1", fontSize = 12.sp) },
-            selected = navController.currentDestination?.route == "page1",
-            onClick = { navController.navigate("page1") }
+            label = { Text("Map", fontSize = 12.sp) },
+            selected = navController.currentDestination?.route == "map",
+            onClick = {
+                navController.navigate("map") {
+                    popUpTo("map") { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         )
         NavigationBarItem(
             icon = {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_analytics),
-                    contentDescription = "Page 2",
+                    contentDescription = "QR",
                     modifier = Modifier.size(24.dp)
                 )
             },
-            label = { Text("Page 2", fontSize = 12.sp) },
-            selected = navController.currentDestination?.route == "page2",
-            onClick = { navController.navigate("page2") }
+            label = { Text("QR", fontSize = 12.sp) },
+            selected = navController.currentDestination?.route == "qr",
+            onClick = {
+                navController.navigate("qr") {
+                    popUpTo("qr") { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.Settings, contentDescription = "Page 3") },
-            label = { Text("Page 3") },
-            selected = navController.currentDestination?.route == "page3",
-            onClick = { navController.navigate("page3") }
+            icon = { Icon(Icons.Filled.Settings, contentDescription = "Profile") },
+            label = { Text("Profile") },
+            selected = navController.currentDestination?.route == "profile",
+            onClick = {
+                navController.navigate("profile") {
+                    popUpTo("profile") { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         )
     }
 }
