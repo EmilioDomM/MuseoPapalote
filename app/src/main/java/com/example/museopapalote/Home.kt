@@ -4,10 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import com.example.landingpage.components.NavBar.BottomNavigationBar
 
@@ -94,29 +98,129 @@ fun TopBar() {
 
 @Composable
 fun ObrasDeInteresSection() {
-    val imageList = listOf(
-        R.drawable.obra_1,
-        R.drawable.obra_2,
-        R.drawable.obra_3,
-        R.drawable.obra_4,
-        R.drawable.seccion_1,
-        R.drawable.seccion_2,
-        R.drawable.seccion_3,
-        R.drawable.seccion_4
+    val obras = listOf(
+        Obra(
+            id = 1,
+            title = "Título de la obra 1",
+            thumbnailImageRes = R.drawable.obra_3,
+            imagesWithDescriptions = listOf(
+                ImageWithDetails(
+                    imageRes = R.drawable.obra_1,
+                    title = "Imagen 1",
+                    description = "Primera imagen de la obra 1."
+                ),
+                ImageWithDetails(
+                    imageRes = R.drawable.seccion_1,
+                    title = "Imagen 2",
+                    description = "Segunda imagen de la obra 1."
+                )
+            )
+        ),
+        Obra(
+            id = 2,
+            title = "Título de la obra 2",
+            thumbnailImageRes = R.drawable.obra_4,
+            imagesWithDescriptions = listOf(
+                ImageWithDetails(
+                    imageRes = R.drawable.obra_2,
+                    title = "Imagen 1",
+                    description = "Primera imagen de la obra 2."
+                ),
+                ImageWithDetails(
+                    imageRes = R.drawable.seccion_2,
+                    title = "Imagen 2",
+                    description = "Segunda imagen de la obra 2."
+                ),
+                ImageWithDetails(
+                    imageRes = R.drawable.seccion_3,
+                    title = "Imagen 3",
+                    description = "Tercera imagen de la obra 2."
+                )
+            )
+        ),
+        Obra(
+            id = 3,
+            title = "Título de la obra 3",
+            thumbnailImageRes = R.drawable.obra_3,
+            imagesWithDescriptions = listOf(
+                ImageWithDetails(
+                    imageRes = R.drawable.obra_1,
+                    title = "Imagen 1",
+                    description = "Primera imagen de la obra 3."
+                ),
+                ImageWithDetails(
+                    imageRes = R.drawable.seccion_1,
+                    title = "Imagen 2",
+                    description = "Segunda imagen de la obra 3."
+                )
+            )
+        ),
+        Obra(
+            id = 4,
+            title = "Título de la obra 4",
+            thumbnailImageRes = R.drawable.obra_4,
+            imagesWithDescriptions = listOf(
+                ImageWithDetails(
+                    imageRes = R.drawable.obra_2,
+                    title = "Imagen 1",
+                    description = "Primera imagen de la obra 4."
+                ),
+                ImageWithDetails(
+                    imageRes = R.drawable.seccion_2,
+                    title = "Imagen 2",
+                    description = "Segunda imagen de la obra 4."
+                ),
+                ImageWithDetails(
+                    imageRes = R.drawable.seccion_3,
+                    title = "Imagen 3",
+                    description = "Tercera imagen de la obra 4."
+                )
+            )
+        ),
+        Obra(
+            id = 5,
+            title = "Título de la obra 5",
+            thumbnailImageRes = R.drawable.obra_3,
+            imagesWithDescriptions = listOf(
+                ImageWithDetails(
+                    imageRes = R.drawable.obra_1,
+                    title = "Imagen 1",
+                    description = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n"
+                ),
+                ImageWithDetails(
+                    imageRes = R.drawable.seccion_1,
+                    title = "Imagen 2",
+                    description = "Segunda imagen de la obra 1."
+                )
+            )
+        ),
+        Obra(
+            id = 6,
+            title = "Título de la obra 6",
+            thumbnailImageRes = R.drawable.obra_4,
+            imagesWithDescriptions = listOf(
+                ImageWithDetails(
+                    imageRes = R.drawable.obra_2,
+                    title = "Imagen 1",
+                    description = "Primera imagen de la obra 2."
+                ),
+                ImageWithDetails(
+                    imageRes = R.drawable.seccion_2,
+                    title = "Imagen 2",
+                    description = "Segunda imagen de la obra 2."
+                ),
+                ImageWithDetails(
+                    imageRes = R.drawable.seccion_3,
+                    title = "Imagen 3",
+                    description = "Tercera imagen de la obra 2."
+                )
+            )
+        )
     )
 
-    val imageDescriptions = listOf(
-        "Descripción detallada de la obra 1",
-        "Descripción detallada de la obra 2",
-        "Descripción detallada de la obra 3",
-        "Descripción detallada de la obra 4",
-        "Descripción de la sección 1",
-        "Descripción de la sección 2",
-        "Descripción de la sección 3",
-        "Descripción de la sección 4"
-    )
 
-    var selectedImageIndex by remember { mutableStateOf<Int?>(null) }
+    var selectedObraId by remember { mutableStateOf<Int?>(null) }
+    var selectedImageWithDetails by remember { mutableStateOf<ImageWithDetails?>(null) }
 
     Column(
         modifier = Modifier
@@ -124,32 +228,142 @@ fun ObrasDeInteresSection() {
             .padding(16.dp)
     ) {
         Text(
-            text = "Obras de Interés",
+            text = "Secciones del museo",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(imageList.chunked(2)) { imageChunk ->
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+            items(obras.chunked(2)) { rowObras ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()) // Barra de desplazamiento horizontal
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    imageChunk.forEachIndexed { _, imageRes ->
+                    rowObras.forEach { obra ->
                         Box(
                             modifier = Modifier
-                                .size(180.dp)
-                                .clip(MaterialTheme.shapes.medium)
+                                .weight(1f)
+                                .aspectRatio(1f) // Mantiene proporciones cuadradas
+                                .clip(RoundedCornerShape(8.dp))
                                 .border(1.dp, MaterialTheme.colorScheme.onSurface)
-                                .clickable { selectedImageIndex = imageList.indexOf(imageRes) }
+                                .clickable { selectedObraId = obra.id }
                         ) {
                             Image(
-                                painter = painterResource(id = imageRes),
-                                contentDescription = imageDescriptions[imageList.indexOf(imageRes)],
+                                painter = painterResource(id = obra.thumbnailImageRes),
+                                contentDescription = null,
                                 modifier = Modifier.fillMaxSize()
                             )
+                        }
+                    }
+                    if (rowObras.size < 2) {
+                        Spacer(modifier = Modifier.weight(1f)) // Espaciador para alinear si hay menos de 2 elementos
+                    }
+                }
+            }
+        }
+    }
+
+    selectedObraId?.let { id ->
+        val obra = obras.find { it.id == id }
+        Dialog(
+            onDismissRequest = { selectedObraId = null },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    // Encabezado con botón de regreso
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        IconButton(onClick = { selectedObraId = null }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Volver",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    obra?.let {
+                        // Título de la obra
+                        Text(
+                            text = it.title,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+
+                        // Sección de imágenes con diseño estilizado
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(24.dp)
+                        ) {
+                            // Agrupamos las imágenes en pares para crear filas
+                            it.imagesWithDescriptions.chunked(2).forEach { pair ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    pair.forEach { imageWithDetails ->
+                                        Column(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickable { selectedImageWithDetails = imageWithDetails },
+                                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            // Fondo estilizado para la imagen
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .aspectRatio(1f)
+                                                    .background(
+                                                        color = MaterialTheme.colorScheme.surface,
+                                                        shape = MaterialTheme.shapes.medium
+                                                    )
+                                                    .shadow(4.dp, MaterialTheme.shapes.medium)
+                                                    .padding(12.dp)
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(id = imageWithDetails.imageRes),
+                                                    contentDescription = imageWithDetails.description,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .clip(MaterialTheme.shapes.medium)
+                                                )
+                                            }
+
+                                            // Título de la imagen
+                                            Text(
+                                                text = imageWithDetails.title,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onBackground,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        }
+                                    }
+
+                                    // Si la fila tiene menos de 2 elementos, añadimos un espacio
+                                    if (pair.size < 2) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -157,75 +371,108 @@ fun ObrasDeInteresSection() {
         }
     }
 
-    selectedImageIndex?.let { index ->
-        Dialog(onDismissRequest = { selectedImageIndex = null }) {
+
+    selectedImageWithDetails?.let { image ->
+        Dialog(onDismissRequest = { selectedImageWithDetails = null }) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .background(
-                        MaterialTheme.colorScheme.background,
-                        shape = MaterialTheme.shapes.large
-                    )
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(16.dp)
             ) {
+                // Contenido principal (imagen y texto)
                 Column(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 64.dp), // Espacio para el botón
+                    horizontalAlignment = Alignment.CenterHorizontally // Centra todo horizontalmente
                 ) {
-                    // Botón de cerrar
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        IconButton(
-                            onClick = { selectedImageIndex = null }
-                        ) {
+                        IconButton(onClick = { selectedImageWithDetails = null }) {
                             Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Cerrar"
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Volver",
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                    // Imagen detallada
-                    Image(
-                        painter = painterResource(id = imageList[index]),
-                        contentDescription = imageDescriptions[index],
+                    // Fondo para la imagen con sombra
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .clip(MaterialTheme.shapes.medium)
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Descripción
-                    Text(
-                        text = imageDescriptions[index],
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(8.dp),
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Botón "Ver en mapa"
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
+                            .fillMaxWidth(0.9f) // La imagen ocupa el 90% del ancho
+                            .aspectRatio(1f) // Proporción cuadrada
+                            .background(
+                                color = MaterialTheme.colorScheme.surface,
+                                shape = MaterialTheme.shapes.medium
+                            )
+                            .shadow(8.dp, MaterialTheme.shapes.medium) // Sombra sutil
+                            .padding(16.dp) // Espaciado interno
                     ) {
-                        Button(onClick = { /* Lógica para abrir un mapa */ }) {
-                            Text("Ver en mapa")
-                        }
+                        Image(
+                            painter = painterResource(id = image.imageRes),
+                            contentDescription = image.description,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(MaterialTheme.shapes.medium)
+                        )
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Texto de la descripción
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally // Centra el texto
+                    ) {
+                        Text(
+                            text = "Descripción:",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        Text(
+                            text = image.description,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            textAlign = TextAlign.Center // Centra el texto dentro de su línea
+                        )
+                    }
+                }
+
+                // Botón en la parte inferior izquierda
+                Button(
+                    onClick = { /* Implementar lógica de revisar en mapa interactivo */ },
+                    modifier = Modifier
+                        .align(Alignment.BottomStart) // Posiciona el botón en la esquina inferior izquierda
+                        .padding(16.dp) // Margen adicional para separarlo del borde
+                ) {
+                    Text(text = "Revisar en mapa interactivo")
                 }
             }
         }
     }
 }
+
+// Modelos de datos
+data class Obra(
+    val id: Int,
+    val title: String,
+    val thumbnailImageRes: Int,
+    val imagesWithDescriptions: List<ImageWithDetails>
+)
+
+data class ImageWithDetails(
+    val imageRes: Int,
+    val title: String,
+    val description: String
+)
 
 
 
