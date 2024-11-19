@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -50,10 +51,11 @@ fun Home(navController: NavHostController) {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 0.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             Spacer(modifier = Modifier.height(20.dp))
             ObrasDeInteresSection()
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(30.dp))
             MapaInteractivoSection()
         }
     }
@@ -213,11 +215,15 @@ fun ObrasDeInteresSection() {
                     imageRes = R.drawable.seccion_3,
                     title = "Imagen 3",
                     description = "Tercera imagen de la obra 2."
+                ),
+                ImageWithDetails(
+                    imageRes = R.drawable.seccion_3,
+                    title = "Imagen 4",
+                    description = "Cuarta imagen de la obra 2"
                 )
             )
-        )
+        ),
     )
-
 
     var selectedObraId by remember { mutableStateOf<Int?>(null) }
     var selectedImageWithDetails by remember { mutableStateOf<ImageWithDetails?>(null) }
@@ -227,21 +233,25 @@ fun ObrasDeInteresSection() {
             .fillMaxWidth()
             .padding(16.dp)
     ) {
+        // Título de la sección
         Text(
             text = "Secciones del museo",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        // Contenido con scroll interno limitado
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 400.dp) // Limitar la altura para evitar conflictos de scroll
         ) {
             items(obras.chunked(2)) { rowObras ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()) // Barra de desplazamiento horizontal
+                        .horizontalScroll(rememberScrollState()) // Scroll horizontal para filas
                         .padding(horizontal = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -249,7 +259,7 @@ fun ObrasDeInteresSection() {
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .aspectRatio(1f) // Mantiene proporciones cuadradas
+                                .aspectRatio(1f) // Mantener proporción cuadrada
                                 .clip(RoundedCornerShape(8.dp))
                                 .border(1.dp, MaterialTheme.colorScheme.onSurface)
                                 .clickable { selectedObraId = obra.id }
@@ -262,13 +272,14 @@ fun ObrasDeInteresSection() {
                         }
                     }
                     if (rowObras.size < 2) {
-                        Spacer(modifier = Modifier.weight(1f)) // Espaciador para alinear si hay menos de 2 elementos
+                        Spacer(modifier = Modifier.weight(1f)) // Espaciador para alinear
                     }
                 }
             }
         }
     }
 
+    // Diálogo para obra seleccionada
     selectedObraId?.let { id ->
         val obra = obras.find { it.id == id }
         Dialog(
@@ -285,7 +296,7 @@ fun ObrasDeInteresSection() {
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Encabezado con botón de regreso
+                    // Botón de regresar
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Start
@@ -299,8 +310,8 @@ fun ObrasDeInteresSection() {
                         }
                     }
 
+                    // Mostrar obra seleccionada
                     obra?.let {
-                        // Título de la obra
                         Text(
                             text = it.title,
                             style = MaterialTheme.typography.titleLarge,
@@ -308,12 +319,11 @@ fun ObrasDeInteresSection() {
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
 
-                        // Sección de imágenes con diseño estilizado
+                        // Imágenes de la obra
                         Column(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(24.dp)
                         ) {
-                            // Agrupamos las imágenes en pares para crear filas
                             it.imagesWithDescriptions.chunked(2).forEach { pair ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -326,7 +336,6 @@ fun ObrasDeInteresSection() {
                                                 .clickable { selectedImageWithDetails = imageWithDetails },
                                             verticalArrangement = Arrangement.spacedBy(12.dp)
                                         ) {
-                                            // Fondo estilizado para la imagen
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
@@ -357,11 +366,6 @@ fun ObrasDeInteresSection() {
                                             )
                                         }
                                     }
-
-                                    // Si la fila tiene menos de 2 elementos, añadimos un espacio
-                                    if (pair.size < 2) {
-                                        Spacer(modifier = Modifier.weight(1f))
-                                    }
                                 }
                             }
                         }
@@ -370,14 +374,13 @@ fun ObrasDeInteresSection() {
             }
         }
     }
-
-
     selectedImageWithDetails?.let { image ->
         Dialog(onDismissRequest = { selectedImageWithDetails = null }) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
+                    .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
                 // Contenido principal (imagen y texto)
@@ -402,7 +405,6 @@ fun ObrasDeInteresSection() {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Fondo para la imagen con sombra
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(0.9f) // La imagen ocupa el 90% del ancho
@@ -460,6 +462,8 @@ fun ObrasDeInteresSection() {
     }
 }
 
+
+
 // Modelos de datos
 data class Obra(
     val id: Int,
@@ -481,24 +485,37 @@ fun MapaInteractivoSection() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 1.dp, horizontal = 12.dp)
+            .padding(vertical = 8.dp, horizontal = 16.dp) // Espaciado general más consistente
     ) {
+        // Título de la sección
         Text(
             text = "Mapa Interactivo",
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier
-                .padding(4.dp)
+                .padding(bottom = 8.dp) // Separación del título respecto a la imagen
         )
-        Image(
-            painter = painterResource(id = R.drawable.mapa),
-            contentDescription = "Mapa Interactivo",
+
+        // Caja que contiene la imagen con un diseño estilizado
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1.5f)
-                .padding(4.dp) // Menos padding para hacer el borde visualmente más pequeño
-        )
+                .aspectRatio(1.5f) // Relación de aspecto para mantener proporciones
+                .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
+                .background(MaterialTheme.colorScheme.surface) // Fondo que resalta
+                .shadow(8.dp, RoundedCornerShape(16.dp)) // Sombra suave
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.mapa),
+                contentDescription = "Mapa Interactivo",
+                modifier = Modifier
+                    .fillMaxSize() // Asegura que la imagen ocupe todo el espacio del contenedor
+                    .clip(RoundedCornerShape(16.dp)) // Asegura que la imagen respete los bordes redondeados
+            )
+        }
     }
 }
+
 
 
 
