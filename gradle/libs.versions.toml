@@ -14,6 +14,7 @@ constraintlayout = "2.2.0"
 firebaseDatabase = "21.0.0"
 volley = "1.2.1"
 
+
 [libraries]
 accompanist-systemuicontroller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanist" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
