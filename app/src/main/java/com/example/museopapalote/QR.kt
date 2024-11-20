@@ -67,34 +67,55 @@ fun QR(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Scan QR Button at the top
-            Button(
-                onClick = {
-                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                },
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .height(48.dp),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Text(text = "Escanear QR", color = Color.White)
-            }
-
-            // Display scanned text at the bottom center
+            // Descriptive text
             Text(
-                text = scannedText,
-                fontSize = 20.sp,
+                text = "Descripción del código QR y cómo funciona",
+                fontSize = 24.sp,
                 color = Color.White,
                 modifier = Modifier
-                    .background(
-                        color = Color.DarkGray.copy(alpha = 0.6f),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .padding(16.dp)
+                    .padding(top = 16.dp, bottom = 16.dp)
             )
+
+            // QR Frame Image
+            Image(
+                painter = painterResource(id = R.drawable.QR),
+                contentDescription = "Marco de QR",
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Logo at the bottom left
+                Image(
+                    painter = painterResource(id = R.drawable.logo_papalote_verde),
+                    contentDescription = "Logo",
+                    modifier = Modifier
+                        .size(100.dp)
+                )
+
+                // Scan QR Button at the bottom right
+                Button(
+                    onClick = {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    },
+                    modifier = Modifier
+                        .height(48.dp)
+                        .align(Alignment.CenterVertically),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Text(text = "Escanear QR", color = Color.White)
+                }
+            }
         }
     }
 }
