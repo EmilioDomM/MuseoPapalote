@@ -12,6 +12,8 @@ accompanist = "0.32.0"
 firebaseCommonKtx = "21.0.0"
 constraintlayout = "2.2.0"
 firebaseDatabase = "21.0.0"
+volley = "1.2.1"
+
 
 [libraries]
 accompanist-systemuicontroller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanist" }
