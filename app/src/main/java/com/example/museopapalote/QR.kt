@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,7 +53,7 @@ fun QR(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFB7DD6A)) // Pantone color equivalent
+            .background(Color(0xFFFFFFFF)) // Pantone color equivalent
     ) {
         // Back Arrow Icon
         Image(
@@ -75,9 +76,11 @@ fun QR(navController: NavHostController) {
             Text(
                 text = "Escanea el código y descubre",
                 fontSize = 32.sp,
-                color = Color.White,
+                textAlign = TextAlign.Center,
+                color = Color.Black,
                 modifier = Modifier
                     .padding(top = 60.dp, bottom = 36.dp)
+                    .align(Alignment.CenterHorizontally)
             )
 
             // QR Frame Image
