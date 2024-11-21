@@ -16,9 +16,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.museopapalote.R
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
@@ -71,21 +73,22 @@ fun QR(navController: NavHostController) {
         ) {
             // Descriptive text
             Text(
-                text = "Descripción del código QR y cómo funciona",
-                fontSize = 24.sp,
+                text = "Escanea el código y descubre",
+                fontSize = 32.sp,
                 color = Color.White,
                 modifier = Modifier
-                    .padding(top = 16.dp, bottom = 16.dp)
+                    .padding(top = 60.dp, bottom = 36.dp)
             )
 
             // QR Frame Image
             Image(
-                painter = painterResource(id = R.drawable.QR),
+                painter = painterResource(id = R.drawable.qr),
                 contentDescription = "Marco de QR",
                 contentScale = ContentScale.FillWidth,
                 modifier = Modifier
+                    .padding(top = 16.dp, bottom = 16.dp)
                     .fillMaxWidth()
-                    .height(250.dp)
+                    .height(350.dp)
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -100,7 +103,7 @@ fun QR(navController: NavHostController) {
                     painter = painterResource(id = R.drawable.logo_papalote_verde),
                     contentDescription = "Logo",
                     modifier = Modifier
-                        .size(100.dp)
+                        .size(190.dp)
                 )
 
                 // Scan QR Button at the bottom right
@@ -118,4 +121,11 @@ fun QR(navController: NavHostController) {
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun QRPreview() {
+    val navController = rememberNavController()
+    QR(navController = navController)
 }
