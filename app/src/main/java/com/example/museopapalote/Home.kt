@@ -1,7 +1,11 @@
 package com.example.museopapalote
 
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,9 +41,12 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import com.example.landingpage.components.NavBar.BottomNavigationBar
 import com.example.museopapalote.ui.theme.veige
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.firestore.ktx.firestore
-
+import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 
 
 
@@ -64,7 +72,7 @@ fun Home(navController: NavHostController) {
             ) {
                 Spacer(modifier = Modifier.height(20.dp))
 
-                NoticiasSection {}
+                NoticiasSection()
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -76,10 +84,31 @@ fun Home(navController: NavHostController) {
     }
 }
 
-
-
 @Composable
 fun TopBar() {
+    var username by remember { mutableStateOf("Usuario") }
+
+    // Obtener el userID del usuario autenticado
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+    LaunchedEffect(Unit) {
+        if (userId != null) {
+            val db = FirebaseFirestore.getInstance()
+            db.collection("Users").document(userId).get()
+                .addOnSuccessListener { document ->
+                    if (document != null) {
+                        username = document.getString("username") ?: "Usuario"
+                    }
+                }
+                .addOnFailureListener {
+                    username = "Error"
+                }
+        } else {
+            username = "Invitado"
+        }
+    }
+
+    // Diseño de la barra superior
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -90,15 +119,12 @@ fun TopBar() {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Título
             Text(
-                text = "Hola {Usuario}",
+                text = "Hola $username",
                 color = Color.White,
                 fontSize = 40.sp,
-                modifier = Modifier.weight(1f) // Ocupa el espacio disponible
+                modifier = Modifier.weight(1f)
             )
-
-            // Botón de opciones
             Box(
                 modifier = Modifier
                     .size(60.dp)
@@ -118,15 +144,22 @@ fun TopBar() {
     }
 }
 
+
+
 @Composable
-fun NoticiasSection(onNoticiasClick: () -> Unit) {
+fun NoticiasSection() {
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 30.dp, horizontal = 8.dp) // Espaciado alrededor del botón
             .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
             .background(Color.White) // Fondo blanco del botón
-            .clickable { onNoticiasClick() },// Acción al hacer clic
+            .clickable {
+                // Abrir enlace en el navegador
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.papalote.org.mx/actividades/"))
+                context.startActivity(intent)
+            }, // Acción al hacer clic
         contentAlignment = Alignment.Center // Centrar el texto en el botón
     ) {
         Text(
@@ -139,6 +172,24 @@ fun NoticiasSection(onNoticiasClick: () -> Unit) {
     }
 }
 
+@Composable
+fun RatingStars(rating: Int, onRatingChanged: (Int) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(1.dp) // Espaciado entre estrellas
+    ) {
+        (1..5).forEach { starIndex ->
+            Icon(
+                imageVector = Icons.Filled.Star, // Usamos el mismo ícono para todas
+                contentDescription = "Star $starIndex",
+                tint = if (starIndex <= rating) Color(0xFFFFD700) else Color.Black, // Dorado para seleccionadas, negro para el resto
+                modifier = Modifier
+                    .size(32.dp) // Tamaño de las estrellas
+                    .clickable { onRatingChanged(starIndex) } // Cambiar calificación al hacer clic
+            )
+        }
+    }
+}
 
 @Composable
 fun ObrasDeInteresSection() {
@@ -199,48 +250,66 @@ fun ObrasDeInteresSection() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color(0xFFF5F5DC))
+            .background(Color(0xFFF5F5DC)) // Fondo beige del contenedor principal
     ) {
-        Text(
-            text = "Secciones del museo",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 400.dp) // Limitar la altura de LazyColumn
         ) {
+            // Agrupar elementos en pares para crear filas
             items(obras.chunked(2)) { rowObras ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     rowObras.forEach { obra ->
-                        Box(
+                        Card(
                             modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { selectedObraId = obra.id }
+                                .weight(1f) // Hacer que las tarjetas se ajusten al espacio disponible
+                                .aspectRatio(1f) // Asegurar que las tarjetas sean cuadradas
+                                .clip(RoundedCornerShape(16.dp)) // Bordes circulares
+                                .border(
+                                    2.dp,
+                                    Color.Black,
+                                    RoundedCornerShape(16.dp)
+                                ) // Bordes negros
+                                .clickable {
+                                    selectedObraId = obra.id // Actualizar el ID seleccionado
+                                    Log.d(
+                                        "ObrasDeInteresSection",
+                                        "Selected Obra ID: $selectedObraId"
+                                    )
+                                },
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
-                            Image(
-                                painter = painterResource(id = obra.thumbnailImageRes),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                            // Imagen dentro de la tarjeta
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.White) // Fondo blanco dentro de la tarjeta
+                            ) {
+                                Image(
+                                    painter = painterResource(id = obra.thumbnailImageRes),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxSize() // Hacer que la imagen ocupe todo el espacio
+                                        .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
+                                )
+                            }
                         }
+                    }
+
+                    // Si la fila tiene menos de 2 elementos, añadir un espacio vacío para balancear
+                    if (rowObras.size < 2) {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
         }
     }
 
-/// Diálogo para obra seleccionada
     selectedObraId?.let { id ->
         val obra = obras.find { it.id == id }
         Dialog(
@@ -276,7 +345,6 @@ fun ObrasDeInteresSection() {
                     }
 
                     obra?.let {
-                        // Mostrar las imágenes en filas con 2 columnas
                         it.imagesWithDescriptions.chunked(2).forEach { imagePair ->
                             Row(
                                 modifier = Modifier
@@ -285,40 +353,58 @@ fun ObrasDeInteresSection() {
                                 horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 imagePair.forEach { imageWithDetails ->
+                                    // Contenedor que incluye el título encima de la tarjeta
                                     Column(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(Color(0xFFF5F5DC))
-                                            .clickable {
-                                                selectedImageWithDetails = imageWithDetails
-                                            },
+                                            .padding(bottom = 8.dp), // Espaciado entre filas
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        // Título de la imagen
+                                        // Título encima de la tarjeta
                                         Text(
                                             text = imageWithDetails.title,
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontSize = 18.sp,
+                                            color = MaterialTheme.colorScheme.onBackground,
+                                            textAlign = TextAlign.Center,
                                             modifier = Modifier
-                                                .padding(bottom = 8.dp)
-                                                .height(48.dp), // Altura fija para mantener la alineación
-                                            textAlign = TextAlign.Center
+                                                .fillMaxWidth()
+                                                .padding(bottom = 8.dp) // Separación con la tarjeta
                                         )
 
-                                        // Imagen
-                                        Image(
-                                            painter = painterResource(
-                                                id = imageWithDetails.imageRes.takeIf { it != 0 } ?: R.drawable.ic_lock
-                                            ),
-                                            contentDescription = imageWithDetails.description,
+                                        // Tarjeta
+                                        Card(
                                             modifier = Modifier
-                                                .size(180.dp) // Tamaño fijo para la imagen
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(Color(0xFFF5F5DC)), // Fondo opcional
-                                            contentScale = ContentScale.Crop // Ajuste proporcional para llenar el espacio fijo
-                                        )
+                                                .aspectRatio(1f) // Hacer que las tarjetas sean cuadradas
+                                                .clip(RoundedCornerShape(16.dp)) // Bordes circulares
+                                                .border(
+                                                    2.dp,
+                                                    Color.Black,
+                                                    RoundedCornerShape(16.dp)
+                                                ) // Bordes negros
+                                                .clickable {
+                                                    selectedImageWithDetails = imageWithDetails
+                                                },
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Elevación usando CardDefaults
+                                        ) {
+                                            // Fondo blanco de la tarjeta
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(Color.White) // Fondo blanco de la tarjeta
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(
+                                                        id = imageWithDetails.imageRes.takeIf { it != 0 }
+                                                            ?: R.drawable.ic_lock
+                                                    ),
+                                                    contentDescription = imageWithDetails.description,
+                                                    modifier = Modifier
+                                                        .fillMaxSize() // Imagen llena toda la tarjeta
+                                                        .clip(RoundedCornerShape(16.dp)), // Bordes redondeados
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                                 // Relleno vacío si hay solo una imagen en la fila
@@ -327,32 +413,26 @@ fun ObrasDeInteresSection() {
                                 }
                             }
                         }
-                    } ?: run {
-                        // Mostrar mensaje si la obra no se encuentra
-                        Text(
-                            text = "Obra no encontrada",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(16.dp)
-                        )
                     }
                 }
             }
         }
     }
 
-
-
-// Diálogo para imagen seleccionada
     selectedImageWithDetails?.let { image ->
-        Dialog(onDismissRequest = { selectedImageWithDetails = null }) {
+        var rating by remember { mutableStateOf(0) } // Estado para la calificación
+
+        Dialog(
+            onDismissRequest = { selectedImageWithDetails = null },
+            properties = DialogProperties(usePlatformDefaultWidth = false) // El diálogo ocupa toda la pantalla
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize() // El diálogo ocupa toda la pantalla
                     .padding(16.dp)
                     .background(
                         color = MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(0.dp) // Sin esquinas redondeadas
                     )
             ) {
                 Column(
@@ -378,21 +458,58 @@ fun ObrasDeInteresSection() {
                         }
                     }
 
-                    // Imagen más grande
-                    Image(
-                        painter = painterResource(
-                            id = image.imageRes.takeIf { it != 0 } ?: R.drawable.ic_lock
-                        ),
-                        contentDescription = image.description,
+                    // Imagen y estrellas
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth(0.95f) // Imagen más ancha
-                            .aspectRatio(1.2f) // Proporción más grande
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(bottom = 16.dp), // Espaciado inferior
-                        contentScale = ContentScale.Crop // Ajuste proporcional para llenar el espacio fijo
+                            .fillMaxWidth()
+                            .padding(start = 16.dp) // Espacio entre la tarjeta y el borde izquierdo
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Card(
+                                modifier = Modifier
+                                    .width(120.dp) // Tarjeta más pequeña
+                                    .aspectRatio(1f) // Proporción cuadrada
+                                    .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
+                                    .border(2.dp, Color.Black, RoundedCornerShape(16.dp)), // Bordes negros
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(
+                                        id = image.imageRes.takeIf { it != 0 } ?: R.drawable.ic_lock
+                                    ),
+                                    contentDescription = image.description,
+                                    modifier = Modifier
+                                        .fillMaxSize() // Imagen llena toda la tarjeta
+                                        .clip(RoundedCornerShape(16.dp)), // Bordes redondeados
+                                    contentScale = ContentScale.Crop // Ajuste proporcional para llenar el espacio
+                                )
+                            }
 
-                    )
+                            Spacer(modifier = Modifier.width(16.dp)) // Espacio entre la imagen y las estrellas
+
+                            // Calificación con estrellas y botón
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                RatingStars(
+                                    rating = rating,
+                                    onRatingChanged = { newRating -> rating = newRating }
+                                )
+                                // Botón debajo de las estrellas
+                                Button(
+                                    onClick = { /* Acción para mostrar el mapa interactivo */ },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp)
+                                ) {
+                                    Text(text = "Ver en mapa interactivo")
+                                }
+                            }
+                        }
+                    }
 
                     // Descripción del texto debajo de la imagen
                     Text(
@@ -403,22 +520,8 @@ fun ObrasDeInteresSection() {
                         textAlign = TextAlign.Center
                     )
 
-                    // Espaciador para empujar el botón hacia abajo
+                    // Espaciador para empujar elementos hacia abajo
                     Spacer(modifier = Modifier.weight(1f))
-
-                    // Botón en la parte inferior derecha
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        contentAlignment = Alignment.BottomCenter
-                    ) {
-                        Button(
-                            onClick = { /* Acción para mostrar el mapa interactivo */ },
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(text = "Ver en mapa interactivo")
-                        }
-                    }
                 }
             }
         }
