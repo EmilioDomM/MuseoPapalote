@@ -78,7 +78,6 @@ fun Home(navController: NavHostController) {
 
                 ObrasDeInteresSection()
                 Spacer(modifier = Modifier.height(30.dp))
-                MapaInteractivoSection()
             }
         }
     }
@@ -256,7 +255,7 @@ fun ObrasDeInteresSection() {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 400.dp) // Limitar la altura de LazyColumn
+                .heightIn(max = 750.dp) // Limitar la altura de LazyColumn
         ) {
             // Agrupar elementos en pares para crear filas
             items(obras.chunked(2)) { rowObras ->
@@ -265,38 +264,47 @@ fun ObrasDeInteresSection() {
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     rowObras.forEach { obra ->
-                        Card(
+                        Box(
                             modifier = Modifier
-                                .weight(1f) // Hacer que las tarjetas se ajusten al espacio disponible
-                                .aspectRatio(1f) // Asegurar que las tarjetas sean cuadradas
-                                .clip(RoundedCornerShape(16.dp)) // Bordes circulares
-                                .border(
-                                    2.dp,
-                                    Color.Black,
-                                    RoundedCornerShape(16.dp)
-                                ) // Bordes negros
-                                .clickable {
-                                    selectedObraId = obra.id // Actualizar el ID seleccionado
-                                    Log.d(
-                                        "ObrasDeInteresSection",
-                                        "Selected Obra ID: $selectedObraId"
-                                    )
-                                },
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .shadow(
+                                    elevation = 8.dp, // Profundidad de la sombra
+                                    shape = RoundedCornerShape(16.dp)
+                                ) // Aplicar sombra al contenedor externo
                         ) {
-                            // Imagen dentro de la tarjeta
-                            Box(
+                            Card(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.White) // Fondo blanco dentro de la tarjeta
+                                    .fillMaxSize() // Hacer que el Card ocupe todo el espacio dentro del Box
+                                    .clip(RoundedCornerShape(16.dp)) // Bordes circulares
+                                    .border(
+                                        2.dp,
+                                        Color.Black,
+                                        RoundedCornerShape(16.dp)
+                                    ) // Bordes negros
+                                    .clickable {
+                                        selectedObraId = obra.id // Actualizar el ID seleccionado
+                                        Log.d(
+                                            "ObrasDeInteresSection",
+                                            "Selected Obra ID: $selectedObraId"
+                                        )
+                                    },
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                             ) {
-                                Image(
-                                    painter = painterResource(id = obra.thumbnailImageRes),
-                                    contentDescription = null,
+                                // Imagen dentro de la tarjeta
+                                Box(
                                     modifier = Modifier
-                                        .fillMaxSize() // Hacer que la imagen ocupe todo el espacio
-                                        .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
-                                )
+                                        .fillMaxSize()
+                                        .background(Color.White) // Fondo blanco dentro de la tarjeta
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = obra.thumbnailImageRes),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .fillMaxSize() // Hacer que la imagen ocupe todo el espacio
+                                            .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
+                                    )
+                                }
                             }
                         }
                     }
@@ -541,45 +549,3 @@ data class ImageWithDetails(
     val title: String,
     val description: String
 )
-
-
-
-@Composable
-fun MapaInteractivoSection() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp) // Espaciado general más consistente
-    ) {
-        // Título de la sección
-        Text(
-            text = "Mapa Interactivo",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .padding(bottom = 8.dp) // Separación del título respecto a la imagen
-        )
-
-        // Caja que contiene la imagen con un diseño estilizado
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1.5f) // Relación de aspecto para mantener proporciones
-                .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
-                .background(MaterialTheme.colorScheme.surface) // Fondo que resalta
-                .shadow(8.dp, RoundedCornerShape(16.dp)) // Sombra suave
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.mapa),
-                contentDescription = "Mapa Interactivo",
-                modifier = Modifier
-                    .fillMaxSize() // Asegura que la imagen ocupe todo el espacio del contenedor
-                    .clip(RoundedCornerShape(16.dp)) // Asegura que la imagen respete los bordes redondeados
-            )
-        }
-    }
-}
-
-
-
-
