@@ -1,4 +1,5 @@
 package com.example.museopapalote
+
 import android.app.Activity
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -8,27 +9,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,11 +27,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import java.io.InputStream
 
 @Composable
@@ -52,8 +44,47 @@ fun Profile(navController: NavHostController) {
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-    val defaultRating = 5 // Valor predeterminado para el rating
-    val defaultImage = R.drawable.obra_1
+    var obrasFavoritas by remember { mutableStateOf<List<ImageWithDetails>>(emptyList()) }
+    var username by remember { mutableStateOf("Usuario") }
+    var selectedImageWithDetails by remember { mutableStateOf<ImageWithDetails?>(null) }
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val db = FirebaseFirestore.getInstance()
+
+    LaunchedEffect(Unit) {
+        if (userId != null) {
+            // Obtener el nombre de usuario
+            db.collection("Users").document(userId).get()
+                .addOnSuccessListener { document ->
+                    if (document != null) {
+                        username = document.getString("username") ?: "Usuario"
+                    }
+                }
+                .addOnFailureListener {
+                    username = "Error"
+                }
+
+            // Cargar obras con rating >= 4
+            db.collection("Users").document(userId).collection("RatedImages")
+                .whereGreaterThanOrEqualTo("rating", 4)
+                .get()
+                .addOnSuccessListener { result ->
+                    val favorites = result.map { doc ->
+                        ImageWithDetails(
+                            imageRes = doc.getLong("imageRes")?.toInt() ?: R.drawable.userdefault,
+                            title = doc.getString("title") ?: "",
+                            description = doc.getString("description") ?: "",
+                            rating = doc.getLong("rating")?.toInt() ?: 0
+                        )
+                    }
+                    obrasFavoritas = favorites
+                }
+                .addOnFailureListener { e ->
+                    println("Error cargando obras con rating >= 4: ${e.message}")
+                }
+        } else {
+            username = "Invitado"
+        }
+    }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -79,7 +110,6 @@ fun Profile(navController: NavHostController) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Imagen de perfil y el nombre
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -89,7 +119,6 @@ fun Profile(navController: NavHostController) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 8.dp)
             ) {
-                // Imagen de perfil
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -125,122 +154,96 @@ fun Profile(navController: NavHostController) {
                         color = Color.Black
                     )
                     Text(
-                        text = "Miguel",
+                        text = "$username",
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     )
                 }
             }
+
             Divider(
                 color = Color.Black,
                 thickness = 2.dp,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-            )
-            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp)
+                    .padding(top = 8.dp)
+            )
+
+            // Mostrar obras favoritas con opción de cambiar el rating
+            Text(
+                text = "Tus Obras Favoritas:",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+            )
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // Fondo blanco
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f) // 50%
-                        .clip(RoundedCornerShape(16.dp)) // Esquinas redondeadas
-                        .background(Color.White) // Color de fondo
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Tus Favoritos:",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth() // 50%
-                        .clip(RoundedCornerShape(16.dp)) // Esquinas redondeadas
-                        .background(Color.White) // Color de fondo
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        // Item 1
-                        Column(
+                items(obrasFavoritas) { obra ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White, RoundedCornerShape(16.dp))
+                            .padding(8.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { selectedImageWithDetails = obra }
+                    ) {
+                        Image(
+                            painter = painterResource(id = obra.imageRes),
+                            contentDescription = obra.title,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp)
+                                .size(100.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.Gray)
+                        )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.align(Alignment.CenterVertically)
                         ) {
-                            Divider(
-                                color = Color.Black,
-                                thickness = 3.dp,
-                                modifier = Modifier.fillMaxWidth()
+                            Text(
+                                text = obra.title,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
                             )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            ) {
-                                // Imagen predeterminada si no se encuentra la imagen
-                                Image(
-                                    painter = painterResource(id = defaultImage),
-                                    contentDescription = "Default Obra",
-                                    modifier = Modifier
-                                        .size(180.dp) // Tamaño
-                                        .padding(end = 8.dp) // Espacio entre la imagen y el RatingBar
-                                )
-                                // Rating Bar
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(start = 8.dp)
-                                ) {
-                                    repeat(5) { index ->
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = "Star $index",
-                                            tint = if (index < defaultRating) Color.Yellow else Color.Gray, // Todas las estrellas amarillas
-                                            modifier = Modifier.size(24.dp)
+                            // Mostrar las estrellas según el rating
+                            RatingStars(
+                                rating = obra.rating,
+                                onRatingChanged = { newRating ->
+                                    // Actualizar el rating en la lista local
+                                    obra.rating = newRating
+
+                                    // Guardar el nuevo rating en Firebase
+                                    userId?.let { user ->
+                                        val ratedImageData = mapOf(
+                                            "rating" to newRating,
+                                            "title" to obra.title,
+                                            "description" to obra.description,
+                                            "imageRes" to obra.imageRes
                                         )
+
+                                        db.collection("Users").document(user).collection("RatedImages")
+                                            .document(obra.title)
+                                            .set(ratedImageData)
+                                            .addOnSuccessListener {
+                                                // Actualizar la lista de obras favoritas si el rating cambia
+                                                if (newRating < 4) {
+                                                    obrasFavoritas = obrasFavoritas.filter { it.title != obra.title }
+                                                }
+                                            }
+                                            .addOnFailureListener { e ->
+                                                println("Error al actualizar el rating: ${e.message}")
+                                            }
                                     }
                                 }
-                            }
-                        }
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp)
-                        ) {
-                            Divider(
-                                color = Color.Black,
-                                thickness = 3.dp,
-                                modifier = Modifier.fillMaxWidth()
                             )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            ) {
-                                // Imagen
-                                Image(
-                                    painter = painterResource(id = R.drawable.obra_2),
-                                    contentDescription = "Obra 2",
-                                    modifier = Modifier
-                                        .size(180.dp)
-                                        .padding(end = 8.dp)
-                                )
-                                // Rating Bar
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(start = 8.dp)
-                                ) {
-                                    repeat(5) { index ->
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = "Star $index",
-                                            tint = if (index < 4) Color.Yellow else Color.Gray,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                }
-                            }
                         }
                     }
                 }
@@ -253,11 +256,10 @@ fun Profile(navController: NavHostController) {
                 .align(Alignment.BottomStart)
                 .padding(16.dp)
         ) {
-            Text("Go to Home")
+            Text("Ir al Inicio")
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
