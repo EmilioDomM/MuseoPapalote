@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,8 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,7 +54,7 @@ fun Profile(navController: NavHostController) {
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-    val defaultRating = 5 // Valor predeterminado para el rating
+    val defaultRating = 5
     val defaultImage = R.drawable.obra_1
 
     val launcher = rememberLauncherForActivityResult(
@@ -67,24 +69,26 @@ fun Profile(navController: NavHostController) {
         }
     }
 
-    Image(
-        painter = painterResource(id = R.drawable.fondoperfil),
-        contentDescription = "Fondo de perfil",
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Crop
-    )
+    var selectedTabIndex by remember { mutableStateOf(0) } // Estado para manejar las pestañas
+    val tabTitles = listOf("Favoritos", "Correo") // Títulos de las pestañas
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // Imagen de perfil y el nombre
+    // Box para manejar el fondo y el contenido superpuesto
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Imagen de fondo
+        Image(
+            painter = painterResource(id = R.drawable.fondoperfil),
+            contentDescription = "Fondo de perfil",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // Contenido superpuesto
         Column(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 16.dp)
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
+            // Información de usuario
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -132,121 +136,40 @@ fun Profile(navController: NavHostController) {
                     )
                 }
             }
-            Divider(
-                color = Color.Black,
-                thickness = 2.dp,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-            )
-            Column(
+
+            // TabRow para las pestañas
+            TabRow(selectedTabIndex = selectedTabIndex) {
+                tabTitles.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index },
+                        text = { Text(title) }
+                    )
+                }
+            }
+
+            // Contenido dinámico basado en la pestaña seleccionada
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+                    .padding(16.dp)
+                    .height(550.dp) // Altura fija para evitar que se superponga con el botón
             ) {
-                // Fondo blanco
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f) // 50%
-                        .clip(RoundedCornerShape(16.dp)) // Esquinas redondeadas
-                        .background(Color.White) // Color de fondo
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Tus Favoritos:",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth() // 50%
-                        .clip(RoundedCornerShape(16.dp)) // Esquinas redondeadas
-                        .background(Color.White) // Color de fondo
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        // Item 1
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp)
-                        ) {
-                            Divider(
-                                color = Color.Black,
-                                thickness = 3.dp,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            ) {
-                                // Imagen predeterminada si no se encuentra la imagen
-                                Image(
-                                    painter = painterResource(id = defaultImage),
-                                    contentDescription = "Default Obra",
-                                    modifier = Modifier
-                                        .size(180.dp) // Tamaño
-                                        .padding(end = 8.dp) // Espacio entre la imagen y el RatingBar
-                                )
-                                // Rating Bar
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(start = 8.dp)
-                                ) {
-                                    repeat(5) { index ->
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = "Star $index",
-                                            tint = if (index < defaultRating) Color.Yellow else Color.Gray, // Todas las estrellas amarillas
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp)
-                        ) {
-                            Divider(
-                                color = Color.Black,
-                                thickness = 3.dp,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            ) {
-                                // Imagen
-                                Image(
-                                    painter = painterResource(id = R.drawable.obra_2),
-                                    contentDescription = "Obra 2",
-                                    modifier = Modifier
-                                        .size(180.dp)
-                                        .padding(end = 8.dp)
-                                )
-                                // Rating Bar
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(start = 8.dp)
-                                ) {
-                                    repeat(5) { index ->
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = "Star $index",
-                                            tint = if (index < 4) Color.Yellow else Color.Gray,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                when (selectedTabIndex) {
+                    0 -> {
+                        FavoritosSection(defaultImage, defaultRating)
+                    }
+                    1 -> {
+                        CorreoSection()
                     }
                 }
             }
         }
 
+        // Botón de navegación
         Button(
             onClick = { navController.navigate("Home") },
             modifier = Modifier
@@ -258,6 +181,53 @@ fun Profile(navController: NavHostController) {
     }
 }
 
+@Composable
+fun FavoritosSection(defaultImage: Int, defaultRating: Int) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Tus Favoritos:",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Image(
+                painter = painterResource(id = defaultImage),
+                contentDescription = "Favorito",
+                modifier = Modifier.size(100.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            repeat(5) { index ->
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    tint = if (index < defaultRating) Color.Yellow else Color.Gray
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CorreoSection() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Correo:",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Text(
+            text = "miguel@example.com",
+            fontSize = 18.sp,
+            color = Color.Black,
+            modifier = Modifier.padding(top = 16.dp)
+        )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
