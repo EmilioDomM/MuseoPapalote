@@ -1,4 +1,5 @@
 package com.example.museopapalote
+
 import android.app.Activity
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -8,29 +9,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,11 +27,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.io.InputStream
 
 @Composable
@@ -54,8 +41,39 @@ fun Profile(navController: NavHostController) {
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-    val defaultRating = 5
-    val defaultImage = R.drawable.obra_1
+    var obrasFavoritas by remember { mutableStateOf<List<ImageWithDetails>>(emptyList()) }
+    var username by remember { mutableStateOf("Usuario") }
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val db = FirebaseFirestore.getInstance()
+
+    LaunchedEffect(Unit) {
+        if (userId != null) {
+            // Obtener el nombre de usuario
+            db.collection("Users").document(userId).get()
+                .addOnSuccessListener { document ->
+                    username = document.getString("username") ?: "Usuario"
+                }
+                .addOnFailureListener {
+                    username = "Error"
+                }
+
+            // Cargar obras con rating >= 4
+            db.collection("Users").document(userId).collection("RatedImages")
+                .whereGreaterThanOrEqualTo("rating", 4)
+                .get()
+                .addOnSuccessListener { result ->
+                    val favorites = result.map { doc ->
+                        ImageWithDetails(
+                            imageRes = doc.getLong("imageRes")?.toInt() ?: R.drawable.userdefault,
+                            title = doc.getString("title") ?: "",
+                            description = doc.getString("description") ?: "",
+                            rating = doc.getLong("rating")?.toInt() ?: 0
+                        )
+                    }
+                    obrasFavoritas = favorites
+                }
+        }
+    }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -69,10 +87,7 @@ fun Profile(navController: NavHostController) {
         }
     }
 
-    var selectedTabIndex by remember { mutableStateOf(0) } // Estado para manejar las pestañas
-    val tabTitles = listOf("Favoritos", "Correo") // Títulos de las pestañas
-
-    // Box para manejar el fondo y el contenido superpuesto
+    // UI combinada
     Box(modifier = Modifier.fillMaxSize()) {
         // Imagen de fondo
         Image(
@@ -82,7 +97,6 @@ fun Profile(navController: NavHostController) {
             contentScale = ContentScale.Crop
         )
 
-        // Contenido superpuesto
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -93,7 +107,6 @@ fun Profile(navController: NavHostController) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 8.dp)
             ) {
-                // Imagen de perfil
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -129,7 +142,7 @@ fun Profile(navController: NavHostController) {
                         color = Color.Black
                     )
                     Text(
-                        text = "Miguel",
+                        text = username,
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -137,33 +150,62 @@ fun Profile(navController: NavHostController) {
                 }
             }
 
-            // TabRow para las pestañas
-            TabRow(selectedTabIndex = selectedTabIndex) {
-                tabTitles.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        text = { Text(title) }
-                    )
-                }
-            }
-
-            // Contenido dinámico basado en la pestaña seleccionada
-            Box(
+            Divider(
+                color = Color.Black,
+                thickness = 2.dp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
-                    .padding(16.dp)
-                    .height(550.dp) // Altura fija para evitar que se superponga con el botón
+                    .padding(top = 8.dp)
+            )
+
+            // Mostrar obras favoritas
+            Text(
+                text = "Tus Obras Favoritas:",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+            )
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                when (selectedTabIndex) {
-                    0 -> {
-                        FavoritosSection(defaultImage, defaultRating)
-                    }
-                    1 -> {
-                        CorreoSection()
+                items(obrasFavoritas) { obra ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White, RoundedCornerShape(16.dp))
+                            .padding(8.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                    ) {
+                        Image(
+                            painter = painterResource(id = obra.imageRes),
+                            contentDescription = obra.title,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.Gray)
+                        )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        ) {
+                            Text(
+                                text = obra.title,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                            // Mostrar estrellas del rating
+                            RatingStars(
+                                rating = obra.rating,
+                                onRatingChanged = {}
+                            )
+                        }
                     }
                 }
             }
@@ -176,56 +218,8 @@ fun Profile(navController: NavHostController) {
                 .align(Alignment.BottomStart)
                 .padding(16.dp)
         ) {
-            Text("Go to Home")
+            Text("Ir al Inicio")
         }
-    }
-}
-
-@Composable
-fun FavoritosSection(defaultImage: Int, defaultRating: Int) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Tus Favoritos:",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(8.dp)
-        ) {
-            Image(
-                painter = painterResource(id = defaultImage),
-                contentDescription = "Favorito",
-                modifier = Modifier.size(100.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            repeat(5) { index ->
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = null,
-                    tint = if (index < defaultRating) Color.Yellow else Color.Gray
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CorreoSection() {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Correo:",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-        Text(
-            text = "miguel@example.com",
-            fontSize = 18.sp,
-            color = Color.Black,
-            modifier = Modifier.padding(top = 16.dp)
-        )
     }
 }
 

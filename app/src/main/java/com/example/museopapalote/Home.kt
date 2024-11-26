@@ -171,24 +171,49 @@ fun NoticiasSection() {
     }
 }
 
+fun saveToFavorites(obra: Obra, userId: String) {
+    val db = FirebaseFirestore.getInstance()
+    val userFavoritesRef = db.collection("Users").document(userId).collection("Favorites")
+
+    val favoriteData = mapOf(
+        "id" to obra.id,
+        "title" to obra.title,
+        "thumbnailImageRes" to obra.thumbnailImageRes
+    )
+
+    userFavoritesRef.document(obra.id.toString()).set(favoriteData)
+        .addOnSuccessListener {
+            Log.d("Favorites", "Obra ${obra.title} added to favorites.")
+        }
+        .addOnFailureListener { e ->
+            Log.e("Favorites", "Error adding obra to favorites", e)
+        }
+}
+
+
 @Composable
-fun RatingStars(rating: Int, onRatingChanged: (Int) -> Unit) {
+fun RatingStars(
+    rating: Int,
+    onRatingChanged: (Int) -> Unit
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(1.dp) // Espaciado entre estrellas
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        (1..5).forEach { starIndex ->
+        (1..5).forEach { index ->
             Icon(
-                imageVector = Icons.Filled.Star, // Usamos el mismo ícono para todas
-                contentDescription = "Star $starIndex",
-                tint = if (starIndex <= rating) Color(0xFFFFD700) else Color.Black, // Dorado para seleccionadas, negro para el resto
+                imageVector = Icons.Default.Star,
+                contentDescription = "Rating Star $index",
+                tint = if (index <= rating) Color(0xFFFFD700) else Color.Gray,
                 modifier = Modifier
-                    .size(32.dp) // Tamaño de las estrellas
-                    .clickable { onRatingChanged(starIndex) } // Cambiar calificación al hacer clic
+                    .size(32.dp)
+                    .clickable { onRatingChanged(index) }
             )
         }
     }
 }
+
+
 
 @Composable
 fun ObrasDeInteresSection() {
@@ -197,6 +222,7 @@ fun ObrasDeInteresSection() {
     var selectedImageWithDetails by remember { mutableStateOf<ImageWithDetails?>(null) }
     val db = Firebase.firestore
     val context = LocalContext.current
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     LaunchedEffect(Unit) {
         // Cargar datos desde Firestore
@@ -224,11 +250,24 @@ fun ObrasDeInteresSection() {
                                 )
                                 val description = imageDoc.getString("description") ?: ""
                                 val title = imageDoc.getString("title") ?: ""
+
+                                // Leer el rating del usuario si existe
+                                var userRating = 0
+                                userId?.let { user ->
+                                    db.collection("Users").document(user).collection("RatedImages")
+                                        .document(title)
+                                        .get()
+                                        .addOnSuccessListener { userRatingDoc ->
+                                            userRating = userRatingDoc.getLong("rating")?.toInt() ?: 0
+                                        }
+                                }
+
                                 imagesWithDescriptions.add(
                                     ImageWithDetails(
                                         imageRes = imageRes,
                                         description = description,
-                                        title = title
+                                        title = title,
+                                        rating = userRating // Asignar el rating del usuario
                                     )
                                 )
                             }
@@ -238,26 +277,26 @@ fun ObrasDeInteresSection() {
                         id = obraId,
                         title = obraTitle,
                         thumbnailImageRes = thumbnailImageRes,
-                        imagesWithDescriptions = imagesWithDescriptions // Asociar imágenes
+                        imagesWithDescriptions = imagesWithDescriptions
                     )
                 }
                 obras = tempObras
             }
     }
 
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color(0xFFF5F5DC)) // Fondo beige del contenedor principal
+            .background(Color(0xFFF5F5DC))
     ) {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 750.dp) // Limitar la altura de LazyColumn
+                .heightIn(max = 750.dp)
         ) {
-            // Agrupar elementos en pares para crear filas
             items(obras.chunked(2)) { rowObras ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -269,47 +308,40 @@ fun ObrasDeInteresSection() {
                                 .weight(1f)
                                 .aspectRatio(1f)
                                 .shadow(
-                                    elevation = 8.dp, // Profundidad de la sombra
+                                    elevation = 8.dp,
                                     shape = RoundedCornerShape(16.dp)
-                                ) // Aplicar sombra al contenedor externo
+                                )
                         ) {
                             Card(
                                 modifier = Modifier
-                                    .fillMaxSize() // Hacer que el Card ocupe todo el espacio dentro del Box
-                                    .clip(RoundedCornerShape(16.dp)) // Bordes circulares
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(16.dp))
                                     .border(
                                         2.dp,
                                         Color.Black,
                                         RoundedCornerShape(16.dp)
-                                    ) // Bordes negros
+                                    )
                                     .clickable {
-                                        selectedObraId = obra.id // Actualizar el ID seleccionado
-                                        Log.d(
-                                            "ObrasDeInteresSection",
-                                            "Selected Obra ID: $selectedObraId"
-                                        )
+                                        selectedObraId = obra.id
                                     },
                                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                             ) {
-                                // Imagen dentro de la tarjeta
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(Color.White) // Fondo blanco dentro de la tarjeta
+                                        .background(Color.White)
                                 ) {
                                     Image(
                                         painter = painterResource(id = obra.thumbnailImageRes),
                                         contentDescription = null,
                                         modifier = Modifier
-                                            .fillMaxSize() // Hacer que la imagen ocupe todo el espacio
-                                            .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(16.dp))
                                     )
                                 }
                             }
                         }
                     }
-
-                    // Si la fila tiene menos de 2 elementos, añadir un espacio vacío para balancear
                     if (rowObras.size < 2) {
                         Spacer(modifier = Modifier.weight(1f))
                     }
@@ -361,14 +393,12 @@ fun ObrasDeInteresSection() {
                                 horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 imagePair.forEach { imageWithDetails ->
-                                    // Contenedor que incluye el título encima de la tarjeta
                                     Column(
                                         modifier = Modifier
                                             .weight(1f)
                                             .padding(bottom = 8.dp), // Espaciado entre filas
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        // Título encima de la tarjeta
                                         Text(
                                             text = imageWithDetails.title,
                                             style = MaterialTheme.typography.bodyMedium,
@@ -379,7 +409,6 @@ fun ObrasDeInteresSection() {
                                                 .padding(bottom = 8.dp) // Separación con la tarjeta
                                         )
 
-                                        // Tarjeta
                                         Card(
                                             modifier = Modifier
                                                 .aspectRatio(1f) // Hacer que las tarjetas sean cuadradas
@@ -392,9 +421,8 @@ fun ObrasDeInteresSection() {
                                                 .clickable {
                                                     selectedImageWithDetails = imageWithDetails
                                                 },
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Elevación usando CardDefaults
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                         ) {
-                                            // Fondo blanco de la tarjeta
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxSize()
@@ -407,7 +435,7 @@ fun ObrasDeInteresSection() {
                                                     ),
                                                     contentDescription = imageWithDetails.description,
                                                     modifier = Modifier
-                                                        .fillMaxSize() // Imagen llena toda la tarjeta
+                                                        .fillMaxSize()
                                                         .clip(RoundedCornerShape(16.dp)), // Bordes redondeados
                                                     contentScale = ContentScale.Crop
                                                 )
@@ -415,7 +443,6 @@ fun ObrasDeInteresSection() {
                                         }
                                     }
                                 }
-                                // Relleno vacío si hay solo una imagen en la fila
                                 if (imagePair.size == 1) {
                                     Spacer(modifier = Modifier.weight(1f))
                                 }
@@ -428,29 +455,48 @@ fun ObrasDeInteresSection() {
     }
 
     selectedImageWithDetails?.let { image ->
-        var rating by remember { mutableStateOf(0) } // Estado para la calificación
+        var rating by remember { mutableStateOf(0) } // Estado inicial del rating
+
+        val userId = FirebaseAuth.getInstance().currentUser?.uid // Obtener el ID del usuario autenticado
+        val db = Firebase.firestore
+
+        // Cargar el rating desde Firebase al abrir el diálogo
+        LaunchedEffect(image) {
+            userId?.let { user ->
+                db.collection("Users").document(user).collection("RatedImages")
+                    .document(image.title)
+                    .get()
+                    .addOnSuccessListener { document ->
+                        if (document.exists()) {
+                            rating = document.getLong("rating")?.toInt() ?: 0
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("Firebase", "Error al cargar el rating", e)
+                    }
+            }
+        }
 
         Dialog(
             onDismissRequest = { selectedImageWithDetails = null },
-            properties = DialogProperties(usePlatformDefaultWidth = false) // El diálogo ocupa toda la pantalla
+            properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize() // El diálogo ocupa toda la pantalla
+                    .fillMaxSize()
                     .padding(16.dp)
                     .background(
                         color = MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(0.dp) // Sin esquinas redondeadas
+                        shape = RoundedCornerShape(0.dp)
                     )
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState()) // Scroll vertical
+                        .verticalScroll(rememberScrollState())
                         .padding(16.dp)
                 ) {
-                    // Botón para cerrar el diálogo
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -466,21 +512,20 @@ fun ObrasDeInteresSection() {
                         }
                     }
 
-                    // Imagen y estrellas
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp) // Espacio entre la tarjeta y el borde izquierdo
+                            .padding(start = 16.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Card(
                                 modifier = Modifier
-                                    .width(120.dp) // Tarjeta más pequeña
-                                    .aspectRatio(1f) // Proporción cuadrada
-                                    .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
-                                    .border(2.dp, Color.Black, RoundedCornerShape(16.dp)), // Bordes negros
+                                    .width(120.dp)
+                                    .aspectRatio(1f)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .border(2.dp, Color.Black, RoundedCornerShape(16.dp)),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                             ) {
                                 Image(
@@ -489,37 +534,49 @@ fun ObrasDeInteresSection() {
                                     ),
                                     contentDescription = image.description,
                                     modifier = Modifier
-                                        .fillMaxSize() // Imagen llena toda la tarjeta
-                                        .clip(RoundedCornerShape(16.dp)), // Bordes redondeados
-                                    contentScale = ContentScale.Crop // Ajuste proporcional para llenar el espacio
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(16.dp)),
+                                    contentScale = ContentScale.Crop
                                 )
                             }
 
-                            Spacer(modifier = Modifier.width(16.dp)) // Espacio entre la imagen y las estrellas
+                            Spacer(modifier = Modifier.width(16.dp))
 
-                            // Calificación con estrellas y botón
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 RatingStars(
                                     rating = rating,
-                                    onRatingChanged = { newRating -> rating = newRating }
+                                    onRatingChanged = { newRating ->
+                                        rating = newRating
+                                        image.rating = newRating
+
+                                        // Guardar la calificación en Firebase
+                                        userId?.let { user ->
+                                            val ratedImageData = mapOf(
+                                                "rating" to newRating,
+                                                "title" to image.title,
+                                                "description" to image.description,
+                                                "imageRes" to image.imageRes
+                                            )
+
+                                            db.collection("Users").document(user).collection("RatedImages")
+                                                .document(image.title)
+                                                .set(ratedImageData)
+                                                .addOnSuccessListener {
+                                                    Log.d("Firebase", "Rating guardado correctamente para el usuario $user")
+                                                }
+                                                .addOnFailureListener { e ->
+                                                    Log.e("Firebase", "Error al guardar el rating", e)
+                                                }
+                                        }
+                                    }
                                 )
-                                // Botón debajo de las estrellas
-                                Button(
-                                    onClick = { /* Acción para mostrar el mapa interactivo */ },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp)
-                                ) {
-                                    Text(text = "Ver en mapa interactivo")
-                                }
                             }
                         }
                     }
 
-                    // Descripción del texto debajo de la imagen
                     Text(
                         text = image.description,
                         style = MaterialTheme.typography.bodyLarge,
@@ -528,7 +585,6 @@ fun ObrasDeInteresSection() {
                         textAlign = TextAlign.Center
                     )
 
-                    // Espaciador para empujar elementos hacia abajo
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -547,5 +603,6 @@ data class Obra(
 data class ImageWithDetails(
     val imageRes: Int,
     val title: String,
-    val description: String
+    val description: String,
+    var rating: Int = 0 // Nuevo campo para almacenar la calificación
 )
