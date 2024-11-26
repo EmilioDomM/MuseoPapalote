@@ -230,3 +230,4 @@ fun ProfilePreview() {
     val navController = rememberNavController()
     Profile(navController = navController)
 }
+
