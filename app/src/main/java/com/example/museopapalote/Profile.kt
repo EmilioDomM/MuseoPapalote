@@ -27,7 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -88,14 +88,22 @@ fun Profile(navController: NavHostController) {
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
+    // UI combinada
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Imagen de fondo
+        Image(
+            painter = painterResource(id = R.drawable.fondoperfil),
+            contentDescription = "Fondo de perfil",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
+            // Información de usuario
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -135,7 +143,7 @@ fun Profile(navController: NavHostController) {
                         color = Color.Black
                     )
                     Text(
-                        text = "$username",
+                        text = username,
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -204,6 +212,7 @@ fun Profile(navController: NavHostController) {
             }
         }
 
+        // Botón de navegación
         Button(
             onClick = { navController.navigate("Home") },
             modifier = Modifier
@@ -213,4 +222,11 @@ fun Profile(navController: NavHostController) {
             Text("Ir al Inicio")
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ProfilePreview() {
+    val navController = rememberNavController()
+    Profile(navController = navController)
 }
