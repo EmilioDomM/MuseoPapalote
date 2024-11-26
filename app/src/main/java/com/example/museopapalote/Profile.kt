@@ -222,10 +222,3 @@ fun Profile(navController: NavHostController) {
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun ProfilePreview() {
-    val navController = rememberNavController()
-    Profile(navController = navController)
-}
