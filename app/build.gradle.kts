@@ -41,7 +41,8 @@ android {
 }
 
 dependencies {
-
+    implementation("androidx.compose.material:material-icons-core:<version>")
+    implementation("androidx.compose.material:material-icons-extended:<version>")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
