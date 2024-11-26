@@ -28,14 +28,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
 import java.io.InputStream
 
 @Composable
@@ -46,7 +44,6 @@ fun Profile(navController: NavHostController) {
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var obrasFavoritas by remember { mutableStateOf<List<ImageWithDetails>>(emptyList()) }
     var username by remember { mutableStateOf("Usuario") }
-    var selectedImageWithDetails by remember { mutableStateOf<ImageWithDetails?>(null) }
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     val db = FirebaseFirestore.getInstance()
 
@@ -55,9 +52,7 @@ fun Profile(navController: NavHostController) {
             // Obtener el nombre de usuario
             db.collection("Users").document(userId).get()
                 .addOnSuccessListener { document ->
-                    if (document != null) {
-                        username = document.getString("username") ?: "Usuario"
-                    }
+                    username = document.getString("username") ?: "Usuario"
                 }
                 .addOnFailureListener {
                     username = "Error"
@@ -78,11 +73,6 @@ fun Profile(navController: NavHostController) {
                     }
                     obrasFavoritas = favorites
                 }
-                .addOnFailureListener { e ->
-                    println("Error cargando obras con rating >= 4: ${e.message}")
-                }
-        } else {
-            username = "Invitado"
         }
     }
 
@@ -98,22 +88,13 @@ fun Profile(navController: NavHostController) {
         }
     }
 
-    Image(
-        painter = painterResource(id = R.drawable.fondoperfil),
-        contentDescription = "Fondo de perfil",
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Crop
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 16.dp)
+            modifier = Modifier.fillMaxSize()
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -170,7 +151,7 @@ fun Profile(navController: NavHostController) {
                     .padding(top = 8.dp)
             )
 
-            // Mostrar obras favoritas con opción de cambiar el rating
+            // Mostrar obras favoritas
             Text(
                 text = "Tus Obras Favoritas:",
                 fontSize = 20.sp,
@@ -190,7 +171,6 @@ fun Profile(navController: NavHostController) {
                             .background(Color.White, RoundedCornerShape(16.dp))
                             .padding(8.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .clickable { selectedImageWithDetails = obra }
                     ) {
                         Image(
                             painter = painterResource(id = obra.imageRes),
@@ -213,36 +193,10 @@ fun Profile(navController: NavHostController) {
                                 fontWeight = FontWeight.Bold,
                                 color = Color.Black
                             )
-                            // Mostrar las estrellas según el rating
+                            // Mostrar estrellas del rating
                             RatingStars(
                                 rating = obra.rating,
-                                onRatingChanged = { newRating ->
-                                    // Actualizar el rating en la lista local
-                                    obra.rating = newRating
-
-                                    // Guardar el nuevo rating en Firebase
-                                    userId?.let { user ->
-                                        val ratedImageData = mapOf(
-                                            "rating" to newRating,
-                                            "title" to obra.title,
-                                            "description" to obra.description,
-                                            "imageRes" to obra.imageRes
-                                        )
-
-                                        db.collection("Users").document(user).collection("RatedImages")
-                                            .document(obra.title)
-                                            .set(ratedImageData)
-                                            .addOnSuccessListener {
-                                                // Actualizar la lista de obras favoritas si el rating cambia
-                                                if (newRating < 4) {
-                                                    obrasFavoritas = obrasFavoritas.filter { it.title != obra.title }
-                                                }
-                                            }
-                                            .addOnFailureListener { e ->
-                                                println("Error al actualizar el rating: ${e.message}")
-                                            }
-                                    }
-                                }
+                                onRatingChanged = {}
                             )
                         }
                     }
@@ -259,11 +213,4 @@ fun Profile(navController: NavHostController) {
             Text("Ir al Inicio")
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ProfilePreview() {
-    val navController = rememberNavController()
-    Profile(navController = navController)
 }
