@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
@@ -49,6 +50,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.ui.graphics.Brush
 import androidx.navigation.NavController
 import com.example.museopapalote.ui.theme.CustomTypography
 
@@ -103,11 +105,15 @@ fun TopBar(navController: NavController) { // Recibe NavController como parámet
         }
     }
 
-    // Diseño de la barra superior
+    // Diseño de la barra superior con bordes curvos en la parte inferior y gradiente
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF64A70B)) // Fondo verde
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF64A70B), Color(0xFF009688)) // Green to Teal Gradient
+                )
+            )
             .padding(16.dp)
     ) {
         Row(
@@ -117,24 +123,24 @@ fun TopBar(navController: NavController) { // Recibe NavController como parámet
             Text(
                 text = "Hola $username",
                 color = Color.White,
-                fontSize = 40.sp,
+                fontSize = 30.sp, // Adjusted font size
                 modifier = Modifier.weight(1f)
             )
             Box(
                 modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
+                    .size(50.dp) // Size of the profile circle
+                    .clip(RoundedCornerShape(12.dp)) // Rounded rectangle
                     .background(Color.White)
                     .clickable {
-                        navController.navigate("profile") // Navega a la pantalla de perfil
+                        navController.navigate("profile") // Navigate to profile screen
                     },
-                contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More options",
-                    tint = Color(0xFF64A70B),
-                    modifier = Modifier.size(24.dp)
+                    imageVector = Icons.Default.AccountCircle, // Profile icon
+                    contentDescription = "Profile",
+                    tint = Color(0xFF009688), // Matching the gradient colors
+                    modifier = Modifier.size(30.dp) // Slightly larger icon
                 )
             }
         }
@@ -144,34 +150,44 @@ fun TopBar(navController: NavController) { // Recibe NavController como parámet
 
 
 
+
+
 @Composable
 fun NoticiasSection() {
     val context = LocalContext.current
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 30.dp, horizontal = 8.dp) // Espaciado alrededor del botón
-            .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
-            .background(Color.White) // Fondo blanco del botón
-            .clickable {
-                // Abrir enlace en el navegador
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.papalote.org.mx/actividades/"))
-                context.startActivity(intent)
-            }, // Acción al hacer clic
-        contentAlignment = Alignment.Center // Centrar el contenido del Box
+            .padding(16.dp)
+            .background(Color(0xFFF5F5DC)) // Light beige background
     ) {
-        // Imagen encima de todo
-        Image(
-            painter = painterResource(id = R.drawable.banner), // Reemplaza con tu imagen
-            contentDescription = "Fondo Noticias", // Descripción accesible
-            contentScale = ContentScale.Crop, // Ajuste del contenido (opcional)
+        Box(
             modifier = Modifier
-                .fillMaxWidth() // O ajusta el tamaño según necesites
-                .height(100.dp) // Ajusta la altura según el diseño
-        )
+                .fillMaxWidth()
+                .height(100.dp) // Set the height as needed
+                .shadow(
+                    elevation = 8.dp, // Shadow for the image
+                    shape = RoundedCornerShape(16.dp) // Rounded corners for shadow
+                )
+                .clip(RoundedCornerShape(16.dp)) // Clip image to rounded corners
+                .clickable {
+                    // Open the link when clicked
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.papalote.org.mx/actividades/"))
+                    context.startActivity(intent)
+                }
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.banner), // Replace with your image
+                contentDescription = "Fondo Noticias",
+                contentScale = ContentScale.Crop, // Crop image to fit
+                modifier = Modifier.fillMaxSize() // Fills the container
+            )
+        }
     }
 }
+
+
 
 
 fun saveToFavorites(obra: Obra, userId: String) {
@@ -321,11 +337,6 @@ fun ObrasDeInteresSection() {
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(RoundedCornerShape(16.dp))
-                                    .border(
-                                        2.dp,
-                                        Color.Black,
-                                        RoundedCornerShape(16.dp)
-                                    )
                                     .clickable {
                                         selectedObraId = obra.id
                                     },
