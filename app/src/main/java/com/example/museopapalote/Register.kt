@@ -95,8 +95,6 @@ fun RegisterScreen(navController: NavHostController) {
                 .fillMaxSize()
                 .padding(horizontal = 48.dp)
                 .padding(top = 48.dp),
-
-
         ) {
             Image(
                 painter = logoPainter,
@@ -150,8 +148,12 @@ fun RegisterScreen(navController: NavHostController) {
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     containerColor = Color(0x33000000),
                     focusedBorderColor = Color.White.copy(alpha = 0.5f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
-                ),
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+                    focusedTextColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White
+                    ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -182,7 +184,11 @@ fun RegisterScreen(navController: NavHostController) {
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     containerColor = Color(0x33000000),
                     focusedBorderColor = Color.White.copy(alpha = 0.5f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+                    focusedTextColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -222,7 +228,11 @@ fun RegisterScreen(navController: NavHostController) {
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     containerColor = Color(0x33000000),
                     focusedBorderColor = Color.White.copy(alpha = 0.5f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f)
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+                    focusedTextColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
