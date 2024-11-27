@@ -88,7 +88,7 @@ fun MainNavigation(
         composable("home") { Home(navController) }
         composable("map") { Map(navController) }
         composable("qr") { QR(navController) }
-        composable("profile") { Profile(navController) }
+        composable("profile") { Profile(navController, dataStoreManager) }
     }
 }
 

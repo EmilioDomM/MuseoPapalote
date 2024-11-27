@@ -35,10 +35,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 import java.io.InputStream
 
 @Composable
-fun Profile(navController: NavHostController) {
+fun Profile(navController: NavHostController, dataStoreManager: DataStoreManager) {
     val context = LocalContext.current
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -48,8 +49,8 @@ fun Profile(navController: NavHostController) {
     var username by remember { mutableStateOf("Usuario") }
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     val db = FirebaseFirestore.getInstance()
-    var showObrasFavoritas by remember { mutableStateOf(false) } // Estado para mostrar las obras favoritas
-    var showObrasVisitadas by remember { mutableStateOf(false) } // Estado para mostrar las obras visitadas
+    var showObrasFavoritas by remember { mutableStateOf(false) }
+    var showObrasVisitadas by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         if (userId != null) {
@@ -125,15 +126,17 @@ fun Profile(navController: NavHostController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Información del usuario
+            // Información del usuario con Logout
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
             ) {
+                // Imagen de perfil
                 Box(
                     modifier = Modifier
-                        .size(80.dp) // Reducir tamaño del círculo
-                        .clip(RoundedCornerShape(50))
+                        .size(80.dp)
                         .clickable {
                             val intent = Intent(Intent.ACTION_PICK).apply {
                                 type = "image/*"
@@ -158,7 +161,8 @@ fun Profile(navController: NavHostController) {
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Column {
+                // Texto de "Buenos días" y nombre de usuario
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "¡Buenos días!",
                         fontSize = 20.sp,
@@ -170,6 +174,27 @@ fun Profile(navController: NavHostController) {
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
+                    )
+                }
+
+                // Botón de Logout
+                IconButton(
+                    onClick = {
+                        // Actualizar el estado de inicio de sesión
+                        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                            dataStoreManager.setLoggedIn(false) // Cambiar is_logged_in a false
+                        }
+                        navController.navigate("login") {
+                            // Redirigir al login y limpiar la pila de navegación
+                            popUpTo("home") { inclusive = true }
+                        }
+                    },
+                    modifier = Modifier.size(32.dp) // Ajustar tamaño del ícono
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.logout), // Asegúrate de tener este ícono
+                        contentDescription = "Logout",
+                        tint = Color.Black
                     )
                 }
             }
@@ -237,7 +262,7 @@ fun Profile(navController: NavHostController) {
 
         // Botón de navegación
         Button(
-            onClick = { navController.navigate("Home") },
+            onClick = { navController.navigate("home") },
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(16.dp)
@@ -246,6 +271,9 @@ fun Profile(navController: NavHostController) {
         }
     }
 }
+
+
+
 
 @Composable
 fun CustomButton(text: String, onClick: () -> Unit) {
@@ -316,11 +344,3 @@ fun ObraCard(obra: ImageWithDetails) {
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun ProfilePreview() {
-    val navController = rememberNavController()
-    Profile(navController = navController)
-}
-
