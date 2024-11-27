@@ -107,6 +107,7 @@ fun QR(navController: NavHostController) {
                     contentDescription = "Logo",
                     modifier = Modifier
                         .size(190.dp)
+                        .offset(0.dp, -75.dp)
                 )
 
                 // Scan QR Button at the bottom right
