@@ -209,7 +209,7 @@ fun RatingStars(
                 contentDescription = "Rating Star $index",
                 tint = if (index <= rating) Color(0xFFFFD700) else Color.Gray,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(23.dp)
                     .clickable { onRatingChanged(index) }
             )
         }
@@ -363,7 +363,8 @@ fun ObrasDeInteresSection() {
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize() // Ocupa toda la pantalla
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(16.dp))
                     .background(Color(0xFFF5F5DC)) // Color beige
             ) {
                 Column(
