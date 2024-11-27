@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +50,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
 import androidx.navigation.NavController
-
+import com.example.museopapalote.ui.theme.CustomTypography
 
 @Composable
 fun Home(navController: NavHostController) {
@@ -526,122 +528,129 @@ fun ObrasDeInteresSection() {
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
+                    .fillMaxSize() // Llena toda la pantalla para el fondo
                     .background(
-                        color = MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(0.dp)
-                    )
+                        color = Color.Black.copy(alpha = 0.5f), // Fondo semitransparente para el diálogo
+                    ),
+                contentAlignment = Alignment.Center // Centra el contenido en la pantalla
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
+                        .width(300.dp) // Ancho de la caja
+                        .height(400.dp) // Altura de la caja
+                        .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(16.dp)
                 ) {
-                    // Botón para cerrar el diálogo
-                    Box(
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        contentAlignment = Alignment.TopStart
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
                     ) {
-                        IconButton(onClick = { selectedImageWithDetails = null }) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Cerrar",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-
-                    // Imagen y calificación
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
+                        // Botón para cerrar el diálogo
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            contentAlignment = Alignment.TopStart
                         ) {
-                            Card(
-                                modifier = Modifier
-                                    .width(120.dp)
-                                    .aspectRatio(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .border(2.dp, Color.Black, RoundedCornerShape(16.dp)),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            IconButton(onClick = { selectedImageWithDetails = null }) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowBack,
+                                    contentDescription = "Cerrar",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+
+                        // Imagen y calificación
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Image(
-                                    painter = painterResource(
-                                        id = image.imageRes.takeIf { it != 0 } ?: R.drawable.ic_lock
-                                    ),
-                                    contentDescription = image.description,
+                                Card(
                                     modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(RoundedCornerShape(16.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
+                                        .width(100.dp)
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .border(2.dp, Color.Black, RoundedCornerShape(16.dp)),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                ) {
+                                    Image(
+                                        painter = painterResource(
+                                            id = image.imageRes.takeIf { it != 0 } ?: R.drawable.ic_lock
+                                        ),
+                                        contentDescription = image.description,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(16.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
 
-                            Spacer(modifier = Modifier.width(16.dp))
+                                Spacer(modifier = Modifier.width(16.dp))
 
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                // Mostrar y actualizar el rating
-                                RatingStars(
-                                    rating = rating,
-                                    onRatingChanged = { newRating ->
-                                        rating = newRating
-                                        updateRating(newRating)
-                                    }
-                                )
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // Mostrar y actualizar el rating
+                                    RatingStars(
+                                        rating = rating,
+                                        onRatingChanged = { newRating ->
+                                            rating = newRating
+                                            updateRating(newRating)
+                                        }
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    // Descripción
-                    Text(
-                        text = image.description,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(top = 16.dp),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Checkmark de "Visitado"
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            isVisited = !isVisited
-                            updateVisitedStatus(isVisited)
-                        }
-                    ) {
-                        Checkbox(
-                            checked = isVisited,
-                            onCheckedChange = {
-                                isVisited = it
-                                updateVisitedStatus(it)
-                            },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = MaterialTheme.colorScheme.primary,
-                                uncheckedColor = MaterialTheme.colorScheme.onBackground
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        // Descripción
                         Text(
-                            text = "Visitado",
+                            text = image.description,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.padding(top = 16.dp),
+                            textAlign = TextAlign.Center
                         )
-                    }
 
-                    Spacer(modifier = Modifier.weight(1f))
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Checkmark de "Visitado"
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable {
+                                isVisited = !isVisited
+                                updateVisitedStatus(isVisited)
+                            }
+                        ) {
+                            Checkbox(
+                                checked = isVisited,
+                                onCheckedChange = {
+                                    isVisited = it
+                                    updateVisitedStatus(it)
+                                },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = MaterialTheme.colorScheme.primary,
+                                    uncheckedColor = MaterialTheme.colorScheme.onBackground
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Visitado",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }

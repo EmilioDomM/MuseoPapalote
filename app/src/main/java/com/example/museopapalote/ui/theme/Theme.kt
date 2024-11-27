@@ -51,8 +51,8 @@ fun MuseoPapaloteTheme(
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
+        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
+        typography = CustomTypography, // Usa tu tipografía personalizada aquí
         content = content
     )
 }

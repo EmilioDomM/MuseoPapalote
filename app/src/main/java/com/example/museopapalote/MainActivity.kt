@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.landingpage.components.NavBar.BottomNavigationBar
+import com.example.museopapalote.ui.theme.MuseoPapaloteTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -38,7 +39,9 @@ class MainActivity : ComponentActivity() {
 
         // Configurar el contenido
         setContent {
-            MyApp(dataStoreManager)
+            MuseoPapaloteTheme {
+                MyApp(dataStoreManager)
+            }
         }
 
         // Inicializar Firestore
