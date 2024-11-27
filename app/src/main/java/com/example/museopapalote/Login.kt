@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +41,7 @@ fun LoginScreen(navController: NavHostController, dataStoreManager: DataStoreMan
         Image(
             painter = backgroundPainter,
             contentDescription = null,
+            contentScale = ContentScale.Crop, // Ensures the image scales to fill the screen while maintaining aspect ratio
             modifier = Modifier.fillMaxSize()
         )
         Column(

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.example.museopapalote.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.ContentScale
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -86,9 +87,9 @@ fun RegisterScreen(navController: NavHostController) {
         Image(
             painter = backgroundPainter,
             contentDescription = null,
+            contentScale = ContentScale.Crop, // Ensures the image scales to fill the screen while maintaining aspect ratio
             modifier = Modifier.fillMaxSize()
         )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
