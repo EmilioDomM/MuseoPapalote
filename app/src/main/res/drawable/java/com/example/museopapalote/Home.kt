@@ -70,8 +70,14 @@ fun Home(navController: NavHostController) {
                     .background(Color(0xFFF5F5DC))
 
             ) {
+                Spacer(modifier = Modifier.height(20.dp))
+
                 NoticiasSection()
+
+                Spacer(modifier = Modifier.height(20.dp))
+
                 ObrasDeInteresSection()
+                Spacer(modifier = Modifier.height(30.dp))
             }
         }
     }
@@ -161,12 +167,12 @@ fun NoticiasSection() {
     ) {
         // Imagen encima de todo
         Image(
-            painter = painterResource(id = R.drawable.banner), // Reemplaza con tu imagen
+            painter = painterResource(id = R.drawable.tu_imagen), // Reemplaza con tu imagen
             contentDescription = "Fondo Noticias", // Descripción accesible
             contentScale = ContentScale.Crop, // Ajuste del contenido (opcional)
             modifier = Modifier
                 .fillMaxWidth() // O ajusta el tamaño según necesites
-                .height(100.dp) // Ajusta la altura según el diseño
+                .height(200.dp) // Ajusta la altura según el diseño
         )
     }
 }
@@ -458,26 +464,8 @@ fun ObrasDeInteresSection() {
     }
 
     selectedImageWithDetails?.let { image ->
-        var rating by remember { mutableStateOf(0) } // Inicializar en 0
-        var isVisited by remember { mutableStateOf(false) } // Inicializar en false
-
-        // Consultar Firebase para obtener valores actualizados
-        LaunchedEffect(image) {
-            userId?.let { user ->
-                db.collection("Users").document(user).collection("RatedImages")
-                    .document(image.title)
-                    .get()
-                    .addOnSuccessListener { document ->
-                        if (document.exists()) {
-                            rating = document.getLong("rating")?.toInt() ?: 0
-                            isVisited = document.getBoolean("visitado") ?: false
-                        }
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("Firebase", "Error al cargar los datos de la imagen", e)
-                    }
-            }
-        }
+        var rating by remember { mutableStateOf(image.rating) }
+        var isVisited by remember { mutableStateOf(image.visitado) }
 
         // Actualizar el estado "Visitado" en Firebase
         fun updateVisitedStatus(newStatus: Boolean) {
@@ -493,29 +481,6 @@ fun ObrasDeInteresSection() {
                     }
                     .addOnFailureListener { e ->
                         Log.e("Firebase", "Error al actualizar el estado 'visitado'", e)
-                    }
-            }
-        }
-
-        // Actualizar el estado "Rating" en Firebase
-        fun updateRating(newRating: Int) {
-            userId?.let { user ->
-                val ratedImageData = mapOf(
-                    "rating" to newRating,
-                    "title" to image.title,
-                    "description" to image.description,
-                    "imageRes" to image.imageRes,
-                    "visitado" to isVisited // Mantener el valor de "Visitado"
-                )
-
-                db.collection("Users").document(user).collection("RatedImages")
-                    .document(image.title)
-                    .set(ratedImageData)
-                    .addOnSuccessListener {
-                        Log.d("Firebase", "Rating guardado correctamente para el usuario $user")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("Firebase", "Error al guardar el rating", e)
                     }
             }
         }
@@ -591,12 +556,33 @@ fun ObrasDeInteresSection() {
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                // Mostrar y actualizar el rating
+                                // Rating
                                 RatingStars(
                                     rating = rating,
                                     onRatingChanged = { newRating ->
                                         rating = newRating
-                                        updateRating(newRating)
+                                        image.rating = newRating
+
+                                        // Guardar la calificación en Firebase
+                                        userId?.let { user ->
+                                            val ratedImageData = mapOf(
+                                                "rating" to newRating,
+                                                "title" to image.title,
+                                                "description" to image.description,
+                                                "imageRes" to image.imageRes,
+                                                "visitado" to isVisited
+                                            )
+
+                                            db.collection("Users").document(user).collection("RatedImages")
+                                                .document(image.title)
+                                                .set(ratedImageData)
+                                                .addOnSuccessListener {
+                                                    Log.d("Firebase", "Rating guardado correctamente para el usuario $user")
+                                                }
+                                                .addOnFailureListener { e ->
+                                                    Log.e("Firebase", "Error al guardar el rating", e)
+                                                }
+                                        }
                                     }
                                 )
                             }

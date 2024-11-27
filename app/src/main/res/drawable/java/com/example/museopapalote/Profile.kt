@@ -10,7 +10,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,7 +27,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,12 +43,10 @@ fun Profile(navController: NavHostController) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var obrasFavoritas by remember { mutableStateOf<List<ImageWithDetails>>(emptyList()) }
-    var obrasVisitadas by remember { mutableStateOf<List<ImageWithDetails>>(emptyList()) }
     var username by remember { mutableStateOf("Usuario") }
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     val db = FirebaseFirestore.getInstance()
     var showObrasFavoritas by remember { mutableStateOf(false) } // Estado para mostrar las obras favoritas
-    var showObrasVisitadas by remember { mutableStateOf(false) } // Estado para mostrar las obras visitadas
 
     LaunchedEffect(Unit) {
         if (userId != null) {
@@ -63,7 +59,7 @@ fun Profile(navController: NavHostController) {
                     username = "Error"
                 }
 
-            // Cargar obras con rating >= 4 (favoritas)
+            // Cargar obras con rating >= 4
             db.collection("Users").document(userId).collection("RatedImages")
                 .whereGreaterThanOrEqualTo("rating", 4)
                 .get()
@@ -78,23 +74,6 @@ fun Profile(navController: NavHostController) {
                         )
                     }
                     obrasFavoritas = favorites
-                }
-
-            // Cargar obras marcadas como visitadas
-            db.collection("Users").document(userId).collection("RatedImages")
-                .whereEqualTo("visitado", true)
-                .get()
-                .addOnSuccessListener { result ->
-                    val visited = result.map { doc ->
-                        ImageWithDetails(
-                            imageRes = doc.getLong("imageRes")?.toInt() ?: R.drawable.userdefault,
-                            title = doc.getString("title") ?: "",
-                            description = doc.getString("description") ?: "",
-                            rating = doc.getLong("rating")?.toInt() ?: 0,
-                            visitado = doc.getBoolean("visitado") ?: false
-                        )
-                    }
-                    obrasVisitadas = visited
                 }
         }
     }
@@ -133,8 +112,7 @@ fun Profile(navController: NavHostController) {
             ) {
                 Box(
                     modifier = Modifier
-                        .size(80.dp) // Reducir tamaño del círculo
-                        .clip(RoundedCornerShape(50))
+                        .size(100.dp)
                         .clickable {
                             val intent = Intent(Intent.ACTION_PICK).apply {
                                 type = "image/*"
@@ -188,51 +166,74 @@ fun Profile(navController: NavHostController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                CustomButton(
-                    text = "Tus Obras Favoritas",
-                    onClick = {
-                        showObrasFavoritas = true
-                        showObrasVisitadas = false
-                    }
-                )
+                Button(
+                    onClick = { showObrasFavoritas = !showObrasFavoritas } // Mostrar/ocultar obras favoritas
+                ) {
+                    Text(text = "Tus Obras Favoritas")
+                }
 
-                Spacer(modifier = Modifier.width(8.dp))
-
-                CustomButton(
-                    text = "Visitados",
-                    onClick = {
-                        showObrasVisitadas = true
-                        showObrasFavoritas = false
-                    }
-                )
+                Button(
+                    onClick = { /* Acción para mostrar obras visitadas */ }
+                ) {
+                    Text(text = "Vistados")
+                }
             }
 
-            // Mostrar obras favoritas
+            // Mostrar obras favoritas si está habilitado
             if (showObrasFavoritas) {
                 Text(
                     text = "Tus Obras Favoritas:",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
 
-                ObraCardList(obras = obrasFavoritas) // Lista con scroll
-            }
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(obrasFavoritas) { obra ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.White, RoundedCornerShape(16.dp))
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                        ) {
+                            Image(
+                                painter = painterResource(id = obra.imageRes),
+                                contentDescription = obra.title,
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color.Gray)
+                            )
 
-            // Mostrar obras visitadas
-            if (showObrasVisitadas) {
-                Text(
-                    text = "Tus Obras Visitadas:",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
-                )
+                            Spacer(modifier = Modifier.width(16.dp))
 
-                ObraCardList(obras = obrasVisitadas) // Lista con scroll
+                            Column(
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.align(Alignment.CenterVertically)
+                            ) {
+                                Text(
+                                    text = obra.title,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                                // Mostrar estrellas del rating
+                                RatingStars(
+                                    rating = obra.rating,
+                                    onRatingChanged = {}
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -244,77 +245,6 @@ fun Profile(navController: NavHostController) {
                 .padding(16.dp)
         ) {
             Text("Ir al Inicio")
-        }
-    }
-}
-
-@Composable
-fun CustomButton(text: String, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .height(48.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Black, // Fondo negro
-            contentColor = Color.White   // Texto blanco
-        ),
-        shape = RoundedCornerShape(8.dp) // Bordes redondeados
-    ) {
-        Text(text = text)
-    }
-}
-
-
-@Composable
-fun ObraCardList(obras: List<ImageWithDetails>) {
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(max = 600.dp)
-            .padding(8.dp)
-    ) {
-        items(obras) { obra ->
-            ObraCard(obra = obra)
-        }
-    }
-}
-
-@Composable
-fun ObraCard(obra: ImageWithDetails) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White, RoundedCornerShape(16.dp))
-            .padding(8.dp)
-            .clip(RoundedCornerShape(16.dp))
-    ) {
-        Image(
-            painter = painterResource(id = obra.imageRes),
-            contentDescription = obra.title,
-            modifier = Modifier
-                .size(100.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color.Gray)
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column(
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.align(Alignment.CenterVertically)
-        ) {
-            Text(
-                text = obra.title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-            // Mostrar estrellas del rating
-            RatingStars(
-                rating = obra.rating,
-                onRatingChanged = {}
-            )
         }
     }
 }
