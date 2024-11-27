@@ -19,6 +19,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     NavigationBar(
         containerColor = Color.White
     ) {
+        // Botón de Home
         NavigationBarItem(
             icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
             label = { Text("Home") },
@@ -30,10 +31,12 @@ fun BottomNavigationBar(navController: NavHostController) {
                 }
             }
         )
+
+        // Botón de Map
         NavigationBarItem(
             icon = {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_wallet),
+                    painter = painterResource(id = R.drawable.ic_map), // Cambiado a ic_map
                     contentDescription = "Map",
                     modifier = Modifier.size(24.dp)
                 )
@@ -47,10 +50,12 @@ fun BottomNavigationBar(navController: NavHostController) {
                 }
             }
         )
+
+        // Botón de QR
         NavigationBarItem(
             icon = {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_analytics),
+                    painter = painterResource(id = R.drawable.ic_qr), // Cambiado a ic_qr
                     contentDescription = "QR",
                     modifier = Modifier.size(24.dp)
                 )
@@ -64,8 +69,16 @@ fun BottomNavigationBar(navController: NavHostController) {
                 }
             }
         )
+
+        // Botón de Profile
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.Settings, contentDescription = "Profile") },
+            icon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_user), // Cambiado a ic_qr
+                    contentDescription = "QR",
+                    modifier = Modifier.size(24.dp)
+                )
+            },
             label = { Text("Profile") },
             selected = navController.currentDestination?.route == "profile",
             onClick = {
@@ -77,5 +90,4 @@ fun BottomNavigationBar(navController: NavHostController) {
         )
     }
 }
-
 
