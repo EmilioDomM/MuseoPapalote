@@ -31,11 +31,24 @@ import com.journeyapps.barcodescanner.ScanOptions
 fun QR(navController: NavHostController) {
     val context = LocalContext.current
     var scannedText by remember { mutableStateOf("Escanea un código QR") }
+
+    // Nuevo scanLauncher que abre el enlace en el navegador
     val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result: ScanIntentResult? ->
-        if (result?.contents != null) {
-            scannedText = "Valor Escaneado: ${result.contents}"
-        } else {
-            Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
+        try {
+            if (result?.contents != null) {
+                if (isValidQRCode(result.contents, isTestMode = true)) { // Cambiar a false para modo normal
+                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                        data = android.net.Uri.parse(result.contents)
+                    }
+                    context.startActivity(intent)
+                } else {
+                    Toast.makeText(context, "Código QR inválido", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "Escaneo cancelado", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error al escanear: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -107,7 +120,6 @@ fun QR(navController: NavHostController) {
                     contentDescription = "Logo",
                     modifier = Modifier
                         .size(190.dp)
-                        .offset(0.dp, -75.dp)
                 )
 
                 // Scan QR Button at the bottom right
@@ -126,6 +138,17 @@ fun QR(navController: NavHostController) {
         }
     }
 }
+
+fun isValidQRCode(contents: String, isTestMode: Boolean = false): Boolean {
+    return if (isTestMode) {
+        // Simular que todos los QR son inválidos en modo de prueba
+        false
+    } else {
+        // Validar si el contenido del QR es un enlace en modo normal
+        android.util.Patterns.WEB_URL.matcher(contents).matches()
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable

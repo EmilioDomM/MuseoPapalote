@@ -112,15 +112,11 @@ fun Profile(navController: NavHostController, dataStoreManager: DataStoreManager
     }
 
     // UI principal
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Imagen de fondo
-        Image(
-            painter = painterResource(id = R.drawable.fondoperfil),
-            contentDescription = "Fondo de perfil",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5DC)) // Color de fondo cambiado a Beige
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -271,9 +267,6 @@ fun Profile(navController: NavHostController, dataStoreManager: DataStoreManager
         }
     }
 }
-
-
-
 
 @Composable
 fun CustomButton(text: String, onClick: () -> Unit) {
