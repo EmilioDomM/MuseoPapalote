@@ -54,7 +54,7 @@ fun Profile(navController: NavHostController) {
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-    val defaultRating = 5
+    val defaultRating = 4
     val defaultImage = R.drawable.obra_1
 
     val launcher = rememberLauncherForActivityResult(
@@ -160,7 +160,11 @@ fun Profile(navController: NavHostController) {
             ) {
                 when (selectedTabIndex) {
                     0 -> {
-                        FavoritosSection(defaultImage, defaultRating)
+                        FavoritosSection(
+                            imageResId = R.drawable.obra_2,
+                            defaultImage = defaultImage,
+                            defaultRating = defaultRating
+                        )
                     }
                     1 -> {
                         CorreoSection()
@@ -182,7 +186,7 @@ fun Profile(navController: NavHostController) {
 }
 
 @Composable
-fun FavoritosSection(defaultImage: Int, defaultRating: Int) {
+fun FavoritosSection(imageResId: Int?, defaultImage: Int, defaultRating: Int?) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Tus Favoritos:",
@@ -190,21 +194,56 @@ fun FavoritosSection(defaultImage: Int, defaultRating: Int) {
             fontWeight = FontWeight.Bold,
             color = Color.Black
         )
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(8.dp)
         ) {
+            // Validación de imagen
+            val painter = if (imageResId != null && imageResId != 0) {
+                painterResource(id = imageResId)
+            } else {
+                painterResource(id = defaultImage)
+            }
+
             Image(
-                painter = painterResource(id = defaultImage),
+                painter = painter,
                 contentDescription = "Favorito",
                 modifier = Modifier.size(100.dp)
             )
+
             Spacer(modifier = Modifier.width(8.dp))
+
+            // Validación de rating
+            val validatedRating = when {
+                defaultRating == null || defaultRating < 0 || defaultRating > 5 -> 0
+                else -> defaultRating
+            }
+            val showRatingError = validatedRating == 0 && (defaultRating == null || defaultRating < 0 || defaultRating > 5)
+
+            // Mostrar rating
             repeat(5) { index ->
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = null,
-                    tint = if (index < defaultRating) Color.Yellow else Color.Gray
+                    tint = if (index < validatedRating) Color.Yellow else Color.Gray
+                )
+            }
+            if (imageResId == null || imageResId == 0) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Imagen no encontrada",
+                    fontSize = 12.sp,
+                    color = Color.Red
+                )
+            }
+
+            if (showRatingError) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Rating inválido o no encontrado",
+                    fontSize = 12.sp,
+                    color = Color.Red
                 )
             }
         }
@@ -214,6 +253,32 @@ fun FavoritosSection(defaultImage: Int, defaultRating: Int) {
 @Composable
 fun CorreoSection() {
     Column(modifier = Modifier.fillMaxWidth()) {
+        // Sección de nombre y edad
+        Text(
+            text = "Nombre:",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Text(
+            text = "Miguel",
+            fontSize = 18.sp,
+            color = Color.Gray
+        )
+        Spacer(modifier = Modifier.height(8.dp)) // Espacio entre elementos
+        Text(
+            text = "Edad:",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Text(
+            text = "20",
+            fontSize = 18.sp,
+            color = Color.Gray
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        // Sección de correo
         Text(
             text = "Correo:",
             fontSize = 20.sp,
