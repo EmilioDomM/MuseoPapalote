@@ -55,6 +55,11 @@ Esta app ofrece un **mapa interactivo** para que los visitantes se guíen y viva
 ---
 
 ## Contributing / Contribuir
+@EmilioDomM
+@fabian12341 
+@A01383674
+@A01383670jesusramos
+@Fraga9
 
 **EN:** Ideas and improvements are welcome (issues or PRs).  
 **ES:** Se aceptan ideas y mejoras (issues o PRs).
