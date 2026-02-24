@@ -1,9 +1,9 @@
 # Museo Papalote (Android App)
 
-**EN:** An Android app made to help *Museo Papalote* attract more visitors. The museum is in danger of closing, and it deserves to be discovered by more people.  
+**EN:** An Android app made to help *Museo Papalote* attract more visitors.
 This app provides an **interactive map** so visitors can guide themselves and have a more immersive experience.
 
-**ES:** Una app Android hecha para ayudar al *Museo Papalote* a recibir más visitantes. El museo está en riesgo de cerrar y merece que más personas lo conozcan.  
+**ES:** Una app Android hecha para ayudar al *Museo Papalote* a recibir más visitantes.
 Esta app ofrece un **mapa interactivo** para que los visitantes se guíen y vivan una experiencia más inmersiva.
 
 ---
